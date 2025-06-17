@@ -1,0 +1,69 @@
+.Dd @DATE@
+.Dt rbldns 8
+.Os @VERSION@
+.Sh NAME
+.Nm rbldns
+.Nd an IP-address-listing DNS server (IPv4 network connection)
+.Sh SYNOPSIS
+.Nm rbldns
+.Sh DESCRIPTION
+.Nm rbldns
+is an IP-address-listing DNS server.
+It accepts iterative DNS queries from hosts around the Internet asking about various IP addresses.
+It provides responses showing whether the addresses are on a locally configured list, such as RBL or DUL.
+.Sh "CONFIGURATION"
+Normally
+.Nm rbldns
+is set up by the
+.Xr rbldns-conf 8
+program.
+.Pp
+.Nm rbldns
+runs chrooted in the directory specified by the
+.Ev $ROOT
+environment variable, under the uid and gid specified by the
+.Ev $UID
+and
+.Ev $GID
+environment variables.
+.Pp
+.Nm rbldns
+listens for incoming UDP packets addressed to port 53 of
+.Ev $IP .
+It does not listen for TCP queries.
+.Pp
+.Nm rbldns
+handles domains of the form
+.Ad d.c.b.a Ns . Ns Ad base
+where
+.Ad a.b.c.d
+is the IP address in question and
+.Ar base
+is given by the
+.Ev $BASE
+environment variable.
+.Pp
+.Nm rbldns
+rejects inverse queries, non-Internet-class queries, truncated packets, packets that contain anything other than a single query, query types other than A, TXT, or *, and queries for domains outside
+.Ev $BASE .
+It looks up other queries inside
+.Pa data.cdb ,
+a binary file created by
+.Xr rbldns-data 8 .
+.Sh SEE ALSO
+.Xr rbldns-conf 8 ,
+.Xr rbldns-data 8 ,
+.Xr rblcheck 1
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

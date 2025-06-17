@@ -1,0 +1,65 @@
+.Dd @DATE@
+.Dt dns_domain_fromdot 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns_domain_fromdot
+.Nd parse dot-encoded domain name
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft unsigned int
+.Fn dns_domain_fromdot "dns_domain *out" "const void *buf" "unsigned int buflen"
+.Sh DESCRIPTION
+.Fn dns_domain_fromdot
+reads a dot-encoded DNS name of length
+.Fa len
+from
+.Fa buf ,
+copies the name in packet-encoded format into
+.Fa out .
+.Sh RETURN VALUES
+.Bl -tag -width 5m
+.It 1
+Successful.
+.Fn dns_domain_fromdot
+guarantees that
+.Fa out
+is allocated.
+.It 0
+Failure.
+.Fn dns_domain_fromdot
+leaves
+.Fa out
+alone.
+.El
+.Sh ERRORS
+.Bl -tag -width 5m
+.It Er error_proto
+The input may violate DNS name length restrictions or formatting rules.
+.It Er error_nomem
+Not enough memory is available.
+.El
+.Sh IMPLEMENATION NOTES
+Compared to the original specification, the
+.Fn dns_domain_fromdot
+routine now uses a dedicated data structure, see
+.Xr dns_domain 3 .
+.Sh SEE ALSO
+.Xr dns_domain 3 ,
+.Xr dns_domain_copy 3 ,
+.Xr djbdns 3,
+.Xr error 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

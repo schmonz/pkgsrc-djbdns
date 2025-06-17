@@ -1,0 +1,124 @@
+.Dd @DATE@
+.Dt axfr-get 8
+.Os @VERSION@
+.Sh NAME
+.Nm axfr-get
+.Nd a DNS zone-transfer client
+.Sh SYNOPSIS
+.Nm axfr-get
+.Ar z
+.Ar fn
+.Ar fn.tmp
+.Sh DESCRIPTION
+.Nm axfr-get
+sends a zone-transfer request in DNS-over-TCP format to descriptor 7, reads the results from descriptor 6, and saves the results in a file.
+.Pp
+Normally
+.Nm axfr-get
+is run under
+.Xr tcpclient 1 ,
+which sets up descriptors 6 and 7 as a TCP connection to a remote host.
+.Pp
+.Nm axfr-get
+performs a zone transfer for domain
+.Ar z .
+It writes the results to
+.Ar fn.tmp
+in a format that can be used as input to
+.Xr tinydns-data 8 .
+If the zone transfer completes successfully,
+.Nm axfr-get
+atomically renames
+.Ar fn.tmp
+as
+.Ar fn .
+.Pp
+.Ar fn.tmp
+and
+.Ar fn
+must be on the same filesystem.
+.Pp
+.B axfr-get
+writes the zone serial number as a comment at the top of
+.Ar fn.tmp .
+It skips the zone transfer, leaving
+.Ar fn
+alone, if
+.Ar fn
+already exists,
+.Pp
+.Ar fn
+has a serial number matching the zone serial number, and both serial numbers are nonzero.
+.Pp
+Zone transfers often include duplicate records.
+You should feed the
+.Nm axfr-get
+results through
+.Nm sort Fl u .
+.Pp
+.Nm axfr-get
+discards all records outside the domain
+.Ar z .
+It accepts records in child zones, but it marks all child zones as non-authoritative, so
+.Xr tinydns 8
+will not report those records except as glue.
+If you plan to merge the
+.Nm axfr-get
+results for a domain and a child of the same domain, creating a file authoritative for both zones, make sure to eliminate records in the first output that are within the child zone.
+.Pp
+.Nm axfr-get
+will accept arbitrarily large zone transfers.
+To limit the maximum file size to 1 megabyte, run
+.Nm axfr-get
+under
+.Nm softlimit Fl f Ar 1048576 .
+.Sh IMPLEMENTATION NOTES
+.Nm axfr-get
+handles BIND's RFC-1034-violating multiple-answers zone-transfer format.
+.Pp
+.Nm axfr-get
+does not precisely simulate BIND's handling of
+.Ar *.dom .
+Under BIND, records for
+.Ar *.dom
+do not apply to
+.Ar y.dom
+or
+.Ar anything.y.dom
+if there is a normal record for
+.Ar x.y.dom .
+With
+.Nm axfr-get
+and
+.Xr tinydns 8 ,
+the records apply to
+.Ar y.dom
+and
+.Ar anything.y.dom
+except
+.Ar x.y.dom .
+.Pp
+.Nm axfr-get
+does not precisely simulate BIND's handling of multiple IP addresses for a single name.
+When there are more than 8 addresses,
+.Xr tinydns 8
+selects a random set of 8 for each query.
+.Sh SEE ALSO
+.Xr axfrdns 8,
+.Xr tinydns 8 ,
+.Xr tinydns-data 8 ,
+.Xr tcpclient 1 ,
+.Xr softlimit 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

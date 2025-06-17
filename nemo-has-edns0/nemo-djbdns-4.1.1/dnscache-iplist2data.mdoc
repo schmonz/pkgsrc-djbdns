@@ -1,0 +1,45 @@
+.Dd @DATE@
+.Dt dnscache-iplist2data 8
+.Os @VERSION@
+.Sh NAME
+.Nm dnscache-iplist2data
+.Nd data conversion tool for
+.Xr dnscache-data 8
+.Sh SYNOPSIS
+.Nm dnscache-iplist2data
+.Ar fqdn
+.Sh DESCRIPTION
+.Nm dnscache-iplist2data
+reads an IPv4 address list from standard input and creates a
+.Xr dnscache-data 8
+formatted data line on standard output.
+.Sh EXAMPLES
+If a file
+.Pa @
+contains a list of IPv4 addresses:
+.Pp
+.Dl 1.2.3.4
+.Dl 2.3.4.5
+.Dl 3.4.5.6
+.Dl 4.5.6.7
+.Pp
+and it is piped through
+.Nm dnscache-iplist2data
+as per:
+.Pp
+.Dl cat @ | dnscache-iplist2data '.'
+.Pp
+the result would be:
+.Pp
+.Dl +.:1.2.3.4:2.3.4.5:3.4.5.6:4.5.6.7
+.Sh SEE ALSO
+.Xr dnscache 8
+.Xr dnscache-data 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Stephen A. Welker" .

@@ -1,0 +1,46 @@
+.Dd @DATE@
+.Dt dns_soa_packet 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns_soa_packet
+.Nd low level packet manipulation of SOA records for a domain
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft int
+.Fn dns_soa_packet "soa_data *out" "const byte_t *buf" "unsigned int len"
+.Sh DESCRIPTION
+.Fn dns_soa_packet
+is a low-level component of
+.Fn dns4_soa
+and
+.Fn dns6_soa ,
+designed to support asynchronous DNS lookups.
+It reads a DNS packet of length
+.Fa len
+from
+.Fa buf ,
+extracts the all SOA resource records from the answer section of the packet,
+puts the results into
+.Fa out ,
+and returns 0 or -1 the same way as
+.Fn dns4_soa
+or
+.Fn dns6_soa .
+.Sh SEE ALSO
+.Xr djbdns 3 ,
+.Xr dns_soa 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

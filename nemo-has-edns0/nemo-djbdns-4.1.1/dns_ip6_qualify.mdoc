@@ -1,0 +1,74 @@
+.Dd @DATE@
+.Dt dns_ip6_qualify 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns4_ip6_qualify , dns6_ip6_qualify
+.Nd qualify a domain name
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft int
+.Fn dns4_ip6_qualify "ip6_vector *out" "stralloc *fqdn" "const stralloc *udn"
+.Ft int
+.Fn dns6_ip6_qualify "ip6_vector *out" "stralloc *fqdn" "const stralloc *udn"
+.Sh DESCRIPTION
+.Nm dns4_ip6_qualify
+via an IPv4 connection, feeds the name
+.Fa udn
+through
+.Xr qualification 5
+and looks up 16-byte IP addresses for the result.
+It puts the fully qualified domain name into
+.Fa fqdn ,
+puts the list of the IP addresses into
+.Fa out ,
+and returns 0.
+If the domain does not exist in DNS, or has no IP addresses,
+.Fa out
+will be empty.
+.Pp
+.Nm dns6_ip6_qualify
+via an IPv6 connection, feeds the name
+.Fa udn
+through
+.Xr qualification 5
+and looks up 16-byte IP addresses for the result.
+It puts the fully qualified domain name into
+.Fa fqdn ,
+puts the list of the IP addresses into
+.Fa out ,
+and returns 0.
+If the domain does not exist in DNS, or has no IP addresses,
+.Fa out
+will be empty.
+.Pp
+.Sh RETURN VALUES
+If
+.Nm dns4_ip6_qualify
+or
+.Nm dns6_ip6_qualify
+has trouble with the qualification, has trouble with DNS, or runs out of memory, it returns -1, setting
+.Va errno
+appropriately.
+It may or may not change
+.Fa out
+and
+.Fa fqdn .
+.Sh SEE ALSO
+.Xr djbdns 3 ,
+.Xr qualification 5 ,
+.Xr dns_ip4_qualify 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

@@ -1,0 +1,62 @@
+.Dd @DATE@
+.Dt dnsip6 1
+.Os @VERSION@
+.Sh NAME
+.Nm dnsip6
+.Nd lookup IPv6 (AAAA) addresses
+.Sh SYNOPSIS
+.Nm dnsip6
+.Op Fl 46
+.Op Ar fqdn ...
+.Sh DESCRIPv6TION
+.Nm dnsip6
+resolves
+.I fqdn
+and prints the IPv6 addresses of
+.I fqdn
+on a single line.
+If
+.I fqdn
+does not exist,
+.Nm dnsip6
+prints a blank line.
+You can list several
+.Ar fqdn Ns Li s;
+.Nm dnsip6
+prints each result on a separate line.
+.Sh "OPTIONS"
+.Bl -tag
+.It Fl 4
+(Default). Connect to the network using IPv4.
+.It Fl 6
+Connect to the network using IPv6.
+.El
+.Sh DIAGNOSTICS
+Normally
+.Nm dnsip6
+exits 0.
+If
+.Nm dnsip6
+encounters a temporary problem that prevents it from determining the list of IPv6 addresses, it prints an error message and exits 111.
+The same comments apply to the other programs described here.
+.Sh SEE ALSO
+.Xr dnsip 1 ,
+.Xr dnsip6 1 ,
+.Xr dnsip6q 1 ,
+.Xr dnsname 1 ,
+.Xr dnsmx 1 ,
+.Xr dnstxt 1 ,
+.Xr dnsqr 1 ,
+.Xr dnsq 1 ,
+.Xr dnstrace 1
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

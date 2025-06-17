@@ -1,0 +1,61 @@
+.Dd @DATE@
+.Dt dnstxt 1
+.Os @VERSION@
+.Sh NAME
+.Nm dnstxt
+.Nd prints the TXT record of a fully qualified domain name
+.Sh SYNOPSIS
+.Nm dnstxt
+.Op Fl 46
+.Ar fqdn
+.Op Ar ...
+.Sh DESCRIPTION
+.Nm dnstxt
+prints each of the TXT records of
+.Ar fqdn
+on a single line.
+If there is no TXT record,
+.Nm dnstxt
+does not print any thing.
+You can list several
+.Ar fqdn Ns Li s ;
+.Nm dnstxt
+prints each result on separate lines.
+.Sh "OPTIONS"
+.Bl -tag
+.It Fl 4
+(Default). Connect to the network using IPv4.
+.It Fl 6
+Connect to the network using IPv6.
+.El
+.Sh DIAGNOSTICS
+Normally
+.Nm dnstxt
+exits 0.
+If
+.Nm dnstxt
+encounters a temporary problem that prevents it from determining the TXT record, it prints an error message and exits 111.
+.Sh SEE ALSO
+.Xr dnsip 1 ,
+.Xr dnsip6 1 ,
+.Xr dnsname 1 ,
+.Xr dnsmx 1 ,
+.Xr dnsipq 1 ,
+.Xr dnsip6q 1 ,
+.Xr dnsqr 1 ,
+.Xr dnsq 1 ,
+.Xr dnsspf 1 ,
+.Xr dnstrace 1
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

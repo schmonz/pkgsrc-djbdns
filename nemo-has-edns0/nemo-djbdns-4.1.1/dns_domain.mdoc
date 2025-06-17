@@ -1,0 +1,106 @@
+.Dd @DATE@
+.Dt dns_domain 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns_domain
+.Nd The dns_domain library interface
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Pp
+.Bd -literal
+typedef struct {
+  byte_t *data;
+  unsigned int len;
+  unsigned int a;
+} dns_domain;
+
+#define DNS_DOMAIN {0,0,0}
+.Ed
+.Ft void
+.Fn dns_domain_init "dns_domain *dn"
+.Ft void
+.Fn dns_domain_free "dns_domain *dn"
+.Ft unsigned int
+.Fn dns_domain_ready "dns_domain *dn" "unsigned int n"
+.Ft unsigned int
+.Fn dns_domain_erase "dns_domain *dn"
+.Sh DESCRIPTION
+A DNS domain name is a sequence of components or labels.
+Each component is a string of bytes, of length between 1 and 63 inclusive.
+The total length of all the components, plus the number of components, is between 0 and 254 inclusive.
+.Pp
+A component is packet-encoded as a self-delimiting sequence of bytes, the first byte being the length of the component, the remaining bytes being the bytes in the component.
+A DNS domain name is packet-encoded as a sequence of bytes obtained by concatenating the encodings of the components and a terminating \e0.
+Beware that \e0 can appear inside components.
+The total length of a packet-encoded DNS domain name is between 1 and 255 inclusive.
+.Pp
+.Fn dns_domain_init
+initailises the data structure pointed to by
+.Fa dn
+for use by other routines.
+It is the equivalent as assigning the value
+.Dv DNS_DOMAIN
+to a
+.Vt dns_domain
+data structure.
+.Pp
+.Fn dns_domain_free
+releases any allocated memory and resets the data structure pointed to by
+.Fa dn .
+.Pp
+.Fn dns_domain_ready
+makes sure that
+.Fa dn
+has enough space allocated for
+.Fa len
+bytes.
+It allocates extra space if necessary.
+.Pp
+.Fn dns_domain_erase
+is the same as calling
+.Fn dns_domain_ready
+with
+.Fa len
+set to a value of 1; if successful, it will set the first byte of the data to \e0.
+This is the same as setting
+.Fa dn
+to an empty domain name.
+.Sh ERROR HANDLING
+If the
+.Fa dns_domain_ready
+routine or the
+.Fa dns_domain_erase
+routine runs out of memory, it leaves
+.Fa dn
+alone and returns 0, setting
+.Va errno
+appropriately.
+On success it returns 1; this guarantees that
+.Fa dn
+is allocated.
+.Sh IMPLEMENATION NOTES
+All
+.Nm dns_domain
+routines now use a dedicated data structure
+.Vt dns_domain .
+.Sh SEE ALSO
+.Xr djbdns 3 ,
+.Xr dns_domain_length 3 ,
+.Xr dns_domain_equal 3 ,
+.Xr dns_domain_copy 3 ,
+.Xr dns_domain_fromdot 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

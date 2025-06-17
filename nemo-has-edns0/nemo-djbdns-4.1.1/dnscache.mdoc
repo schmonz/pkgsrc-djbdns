@@ -1,0 +1,287 @@
+.Dd @DATE@
+.Dt dnscache 8
+.Os @VERSION@
+.Sh NAME
+.Nm dnscache
+.Nd a DNS cache, using IPv4 network connection
+.Sh SYNOPSIS
+.Nm dnscache
+.Sh DESCRIPTION
+.Nm dnscache
+accepts recursive DNS queries from local clients such as web browsers and mail transfer agents.
+It collects responses from remote DNS servers.
+It caches the responses to save time later.
+.Sh "CONFIGURATION"
+Normally
+.Nm dnscache
+is set up by the
+.Xr dnscache-conf 8
+program.
+.Pp
+.Nm dnscache
+runs chrooted in the directory specified by the
+.Ev $ROOT
+environment variable, under the uid and gid specified by the
+.Ev $UID
+and
+.Ev $GID
+environment variables.
+.Pp
+.Nm dnscache
+listens for incoming UDP packets and TCP connections addressed to port 53 of
+.Ev $IP .
+Typically
+.Ev $IP
+is
+.Ad 127.0.0.1 ,
+but it can also be an externally accessible IP address.
+.Pp
+.Nm dnscache
+accepts a packet or connection from IP address
+.Ad 1.2.3.4
+if it sees a file named (any of the following):
+.Pp
+.Dl ip/1.2.3.4
+.Dl ip/1.2.3
+.Dl ip/1.2
+.Dl ip/1
+.Pp
+.Nm dnscache
+sends outgoing packets from high ports of
+.Ev $IPSEND .
+Typically
+.Ev $IPSEND
+is
+.Ad 0.0.0.0 ,
+meaning the machine's primary IP address.
+.Pp
+.Nm dnscache
+reads a seed, up to 128 bytes, from standard input, and passes the seed to
+.Xr dns_random_init 3 .
+.Pp
+.Nm dnscache
+will open the database
+.Pa servers/data.cdb ,
+created by
+.Xr dnscache-data 8 ,
+for a list of root server IPv4 addresses.
+It also uses the database for serving IPv4 addresses for other domains.
+For example, if
+.Ad moon.af.mil
+is listed, then
+.Nm dnscache
+will send queries for
+.Ad anything.moon.af.mil
+to those addresses, and will not cache records for
+.Ad anything.moon.af.mil
+from outside servers such as the root servers.
+.Pp
+.Nm dnscache
+will read a list of IPv4 addresses, one address per line, from
+.Pa ignoreip4
+and it will read a list of IPv6 addresses, one address per line, from
+.Pa ignoreip6 .
+If there are addresses listed in either
+.Pa ignoreip4
+or
+.Pa ignoreip6 ,
+for example, then
+.Nm dnscache
+will respond NXDOMAIN for all results to the addresses listed.
+Some registrars are using wildcard records in top level domain records,
+.Nm dnscache
+can be used to return NXDOMAIN results for the IPs returned by the wildcards.
+.Pa ignoreip4
+and
+.Pa ignoreip6
+can also hold addresses of malware or other undesirable hosts and
+.Nm dnscache
+can be used to block access to them.
+.Pp
+If
+.Ev $FORWARDONLY
+is set,
+.Nm dnscache
+treats all of the root server IP addresses in
+.Pa servers/data.cdb
+as a list of IP addresses for other caches, not root servers.
+It forwards queries to those caches the same way that a client does, rather than contacting a chain of servers according to NS records.
+.Pp
+If
+.Ev $EDNS0
+is set,
+.Nm dnscache
+will add an OPT resource record to the additional section of outbound queries.
+.Nm dnscache
+implements the UDP size extension of RFC6891.
+Warning, some authorative servers return FORMERR when detecting the presence of an OPT resource record in the additional section of a packet.
+.Nm dnscache
+handles the presence of OPT resource record in the additional section of queries it receives and responds accordingly.
+.Sh "MEMORY USE"
+.Nm dnscache
+uses a fixed-size table, under 256K, to keep track of as many as 200 simultaneous UDP queries and 20 simultaneous TCP connections.
+It also dynamically allocates memory, usually just a few bytes but occasionally much more, for each active query.
+If it runs out of memory handling a query, it discards that query.
+.Pp
+.Nm dnscache
+asks the operating system to reserve a 128K buffer for bursts of incoming UDP queries.
+If a new UDP query arrives when
+.Nm dnscache
+is already handling 200 simultaneous UDP queries,
+.Nm dnscache
+drops the oldest query.
+If a new TCP connection arrives when
+.Nm dnscache
+is already handling 20 simultaneous TCP connections,
+.Nm dnscache
+drops the oldest connection.
+.Pp
+.Nm dnscache
+uses a fixed-size cache, as controlled by the
+.Ev $CACHESIZE
+environment variable.
+Roughly 5% of the cache is used for a hash table.
+The rest is used for cache entries (including 8-byte Y2038-compliant expiration times):
+.Pp
+.Bl -tag
+.It A sets
+22 bytes plus 4 bytes per address plus the length of the owner name.
+.It NS sets or PTR sets or CNAME sets
+22 bytes plus the length of the owner name and all the data names.
+.It MX sets
+22 bytes plus 2 bytes per MX plus the length of all the names.
+.It Other record sets
+22 bytes plus 2 bytes per record plus the length of all the data strings plus the length of the owner name.
+.It Nonexistent domain or server failure
+22 bytes plus the length of the owner name.
+.El
+.Pp
+Sets larger than 8192 bytes are not cached.
+.Pp
+.Nm dnscache
+does not exit when it runs out of space in its cache;
+it simply removes the oldest entries to make more space.
+.Sh "RESOLUTION AND CACHING POLICIES"
+.Nm dnscache
+relies on a configured list of root name servers.
+In contrast, BIND starts from a
+.Dq hint file
+listing name servers, and asks those name servers where the root name servers are.
+.Pp
+.Nm dnscache
+does not cache (or pass along) records outside the server's bailiwick; those records could be poisoned.
+Records for
+.Ad foo.dom ,
+for example, are accepted only from the root servers, the
+.Ad dom
+servers, and the
+.Ad foo.dom
+servers.
+.Pp
+.Nm dnscache
+does not bypass its cache to obtain glue from the additional section of a response.
+In particular, it will not use glue outside the server's bailiwick, or glue with TTL 0, or glue that violates other caching policies.
+.Pp
+.Nm dnscache
+caches records for at most a week.
+It interprets TTLs above 2147483647 as 0.
+.\" .Pp
+.\" .Nm dnscache
+.\" does not cache SOA records.
+.\" However, it does use SOA TTLs to determine cache times (up to an hour) for zero-record responses and nonexistent domains.
+.Sh "RESPONSES TO DNS CLIENTS"
+.Nm dnscache Ns 's
+responses are generally much smaller than BIND's responses.
+They do not include authority records (NS records of the source name servers and SOA records for negative answers) or additional records (A records relevant to NS or MX records).
+When the answer section is truncated by UDP length limits, it is eliminated entirely.
+.Pp
+.Nm dnscache
+tries to prevent local users from snooping on other local users.
+It discards non-recursive queries; it discards inverse queries; and it discards zone-transfer requests.
+If
+.Ev $HIDETTL
+is set,
+.Nm dnscache
+always uses a TTL of 0 in its responses.
+.Pp
+According to RFC 1035, the AA bit
+.Dq specifies that the responding name server is an authority for the domain name in question section.
+.Pp
+.Nm dnscache
+is not an authority for any domain names.
+.Pp
+.Nm dnscache
+never sets the AA bit (except in NXDOMAIN responses, as required by RFC 2308, to work around a common client bug).
+In contrast, BIND often sets AA for positive responses even when it is not an authority for the domain name.
+(This appears to have been fixed in BIND 9.)
+.Sh "REPEATED IP ADDRESSES"
+If a server sends
+.Nm dnscache
+a repeated IP address,
+.Nm dnscache
+passes the repeated IP address along to the client.
+The server's behavior violates RFC 2181, section 5.5, but there are reasonable uses of repeated IP addresses for load balancing, so
+.Nm dnscache
+does not go out of its way to remove repetitions when they occur.
+.\" .Pp
+.\" A widespread BIND server bug (apparently fixed in BIND 9.1) can unintentionally produce repeated IP addresses.
+.\" Here is an example from one of the BIND company's servers (now fixed):
+.\" .Pp
+.\" .Dl % dnsq a ns-ext.vix.com ns-ext.vix.com
+.\" .Dl 1 ns-ext.vix.com:
+.\" .Dl 117 bytes, 1+1+2+2 records, response, authoritative, noerror
+.\" .Dl query: 1 ns-ext.vix.com
+.\" .Dl answer: ns-ext.vix.com 3600 A 204.152.184.64
+.\" .Dl authority: vix.com 3600 NS ns-ext.vix.com
+.\" .Dl authority: vix.com 3600 NS ns1.gnac.com
+.\" .Dl additional: ns-ext.vix.com 3600 A 204.152.184.64
+.\" .Dl additional: ns1.gnac.com 130768 A 209.182.195.77
+.Pp
+This BIND bug is the most common reason for users to see repeated IP addresses from
+.Nm dnscache .
+.Sh "SPECIAL NAMES"
+.Nm dnscache
+handles
+.Ad localhost
+internally, giving it an A record of
+.Ad 127.0.0.1 .
+.Pp
+.Nm dnscache
+handles
+.Ad 1.0.0.127.in-addr.arpa
+internally, giving it a PTR record of
+.Ad localhost .
+.Pp
+.Nm dnscache
+handles dotted-decimal domain names internally, giving (e.g.) the domain name
+.Ad 192.48.96.2
+an A record of
+.Ad 192.48.96.2 .
+.Sh EXAMPLES
+For tutorial information, see the instructions for:
+.Bl -tag
+.It workstations
+.Ad http://cr.yp.to/djbdns/run-cache.html
+.It home computers
+.Ad http://cr.yp.to/djbdns/run-cache-home.html
+.It external caches
+.Ar http://cr.yp.to/djbdns/run-cache-x.html
+.It upgrading from BIND
+.Ad http://cr.yp.to/djbdns/run-cache-bind-1.html
+.El
+.Sh SEE ALSO
+.Xr dnscache-conf 8
+.Xr dns_random_init 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

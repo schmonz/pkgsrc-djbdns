@@ -1,0 +1,46 @@
+.Dd @DATE@
+.Dt tinydns-v3data2data 8
+.Os @VERSION@
+.Sh NAME
+.Nm tinydns-v3data2data
+.Nd data conversion tool for
+.Xr tinydns-data 8
+.Sh SYNOPSIS
+.Nm tinydns-v3data2data
+.Sh DESCRIPTION
+.Nm tinydns-v3data2data
+reads a DJBDNS version 3 data format from standard input and creates a series of
+.Xr tinydns-data 8
+formatted data lines on standard output.
+.Sh EXAMPLES
+If a file
+.Pa example.data
+contains a list of RRs:
+.Pp
+.Dl Z:example.com:ns1.example.com:info.example.com::::::360000
+.Dl &:example.com:ns1.example.com:192.168.1.1:360000
+.Dl @:example.com:192.168.1.2:mx.example.com:20:360000
+.Pp
+and it is piped through
+.Nm tinydns-v3data2data
+as per:
+.Pp
+.Dl cat example.data | tinydns-v3data2data
+.Pp
+the result would be:
+.Pp
+.Dl SOA:example.com:360000:::ns1.example.com:info.example.com:::::
+.Dl &:example.com:360000:::ns1.example.com:192.168.1.1
+.Dl @:example.com:360000:::20:mx.example.com:192.168.1.2
+.Sh SEE ALSO
+.Xr tinydns 8,
+.Xr tinydns6 8,
+.Xr tinydns-data 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Stephen A. Welker" .

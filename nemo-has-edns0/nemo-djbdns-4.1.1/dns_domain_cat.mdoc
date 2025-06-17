@@ -1,0 +1,79 @@
+.Dd @DATE@
+.Dt dns_domain_cat 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns_domain_cat , dns_domain_catb
+.Nd copy domain names
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft unsigned int
+.Fn dns_domain_cat "dns_domain *out" "const dns_domain *in"
+.Ft unsigned int
+.Fn dns_domain_catb "dns_domain *out" "const void *buf" "unsigned int len"
+.Sh DESCRIPTION
+.Fn dns_domain_cat
+reads the packet-encoded DNS name that
+.Fa in
+points to, concatenates the name into
+.Fa out .
+.Fn dns_domain_catb
+reads the packet-encoded DNS name defined by
+.Fa buf
+and
+.Fa len ,
+copies the name into
+.Fa out .
+It safely handles
+.Fa len
+set to zero or
+.Fa buf
+is null.
+.Sh ERROR HANDLING
+If the
+.Fa dns_domain_catb
+routine detects that
+.Fa len
+is larger than 255, it leaves
+.Fa out
+alone and returns 0, setting
+.Va errno
+appropriately.
+.Pp
+If the
+.Fa dns_domain_cat
+routine or the
+.Fa dns_domain_catb
+routine runs out of memory, it leaves
+.Fa out
+alone and returns 0, setting
+.Va errno
+appropriately.
+On success it returns 1; this guarantees that
+.Fa out
+is allocated.
+.Sh IMPLEMENATION NOTES
+Compared to the original specification, the
+.Fn dns_domain_cat ,
+and
+.Fn dns_domain_catb
+routines now use a dedicated data structure, see
+.Xr dns_domain 3 .
+.Sh SEE ALSO
+.Xr dns_domain 3 ,
+.Xr dns_domain_fromdot 3 ,
+.Xr djbdns 3,
+.Xr error 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Stephen A. Welker"
+based on software developed by
+.An "Daniel J. Bernstein" .

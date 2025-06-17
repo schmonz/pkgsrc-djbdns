@@ -1,0 +1,65 @@
+.Dd @DATE@
+.Dt dnsfilter 8
+.Os @VERSION@
+.Sh NAME
+.Nm dnsfilter
+.Nd reverse-resolves IP addresses, converting them to host names
+.Sh SYNOPSIS
+.Nm dnsfilter
+.Op Fl c Ar n
+.Op Fl l Ar n
+.Sh DESCRIPTION
+.Nm dnsfilter
+reads a series of lines from stdin, converts an IPv4 address to a host name at the beginning of each line, and prints the results to stdout.
+.Pp
+If a line does not begin with an IPv4 address,
+.Nm dnsfilter
+leaves the line alone.
+If an IPv4 address does not have a host name listed in DNS,
+.Nm dnsfilter
+leaves the line alone.
+If an IPv4 address has a host name listed in DNS,
+.Nm dnsfilter
+inserts an equals sign and the host name before the first space or tab in the line.
+If a DNS lookup fails temporarily,
+.Nm dnsfilter
+inserts a colon and a dash-separated error message before the first space or tab in the line.
+.Pp
+While
+.Nm dnsfilter
+is looking up an address in DNS, it reads ahead in the input and looks for more addresses to look up in parallel.
+.Sh "OPTIONS"
+.Bl -tag
+.It Fl c Ar n
+Do at most
+.Ar n
+DNS queries in parallel.
+Default: 10.
+.It Fl l Ar n
+Read ahead at most
+.Ar n
+lines.
+Default: 1000.
+.El
+.Sh SEE ALSO
+.Xr dnsip 1 ,
+.Xr dnsipq 1 ,
+.Xr dnsname 1 ,
+.Xr dnsmx 1 ,
+.Xr dnstxt 1 ,
+.Xr dnsqr 1 ,
+.Xr dnsq 1 ,
+.Xr dnstrace 1
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

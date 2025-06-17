@@ -1,0 +1,45 @@
+.Dd @DATE@
+.Dt dns_name_packet 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns_name_packet
+.Nd low level packet manipulation of PTR records
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft int
+.Fn dns_name_packet "sa_vector *out" "const byte_t *buf" "unsigned int len"
+.Sh DESCRIPTION
+.Fn dns_name_packet is a low-level component of
+.Xr dns_name4 3 ,
+and
+.Xr dns_name6 3 ;
+designed to support asynchronous DNS lookups.
+It reads a DNS packet of length
+.Fa len
+from
+.Fa buf ,
+extracts the first PTR record from the answer section of the packet, puts the result into
+.Fa out ,
+and returns 0 or -1 the same way as
+.Xr dns_name4 3
+or
+.Xr dns_name6 3 .
+.Sh SEE ALSO
+.Xr djbdns 3 ,
+.Xr dns_name4 3 ,
+.Xr dns_name6 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

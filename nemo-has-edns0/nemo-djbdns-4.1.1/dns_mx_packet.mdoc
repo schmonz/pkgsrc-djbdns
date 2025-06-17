@@ -1,0 +1,47 @@
+.Dd @DATE@
+.Dt dns_mx_packet 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns_mx_packet
+.Nd low level packet manipulation of MX records for a domain
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft int
+.Fn dns_mx_packet "mxname_vector *out" "const byte_t *buf" "unsigned int len"
+.Sh DESCRIPTION
+.Fn dns_mx_packet
+is a low-level component of
+.Fn dns4_mx
+and
+.Fn dns6_mx ,
+designed to support asynchronous DNS lookups.
+It reads a DNS packet of length
+.Fa len
+from
+.Fa buf ,
+extracts the MX records from the answer section of the packet, puts the results into
+.Fa out ,
+and returns 0 or -1 the same way as
+.Fn dns4_mx
+or
+.Fn dns6_mx .
+.Sh SEE ALSO
+.Xr djbdns 3 ,
+.Xr dns_mx 3
+.Xr dns_a 3
+.Xr dns_aaaa 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

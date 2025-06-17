@@ -1,0 +1,62 @@
+.Dd @DATE@
+.Dt dns_ns 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns4_ns , dns6_ns
+.Nd NS records for a domain
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft int
+.Fn dns4_ns "sa_vector *out" "const stralloc *fqdn"
+.Ft int
+.Fn dns6_ns "sa_vector *out" "const stralloc *fqdn"
+.Sh DESCRIPTION
+.Fn dns4_ns
+looks up NS records for the fully-qualified domain name in
+.Fa fqdn ,
+via a IPv4 network connection.
+It puts a list (vector) of NS records into
+.Fa out
+and returns 0.
+If the domain does not exist in DNS, or has no NS records,
+.Fa out
+will be empty.
+.Pp
+.Fn dns6_ns
+looks up NS records for the fully-qualified domain name in
+.Fa fqdn ,
+via a IPv6 network connection.
+It puts a list (vector) of NS records into
+.Fa out
+and returns 0.
+If the domain does not exist in DNS, or has no NS records,
+.Fa out
+will be empty.
+.Pp
+If
+.Fn dns4_ns
+or
+.Fn dns6_ns
+has trouble with the DNS lookup or runs out of memory, it returns -1, setting
+.Va errno
+appropriately.
+It may or may not change
+.Fa out .
+.Sh SEE ALSO
+.Xr djbdns 3 ,
+.Xr dns_ns_packet 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

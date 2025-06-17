@@ -1,0 +1,170 @@
+.Dd @DATE@
+.Dt dns4_transmit 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns4_transmit
+.Nd Send a DNS query to some DNS servers using IPv4
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft void
+.Fn dns4_transmit_init "struct dns4_transmit *dt"
+.Ft void
+.Fn dns4_transmit_free "struct dns4_transmit *dt"
+.Ft int
+.Fn dns4_transmit_start "struct dns4_transmit *dt" "ip4_vector *servers" "unsigned int flag_recursive" "const dns_domain *qname" "const dns_type *qtype" "const ip4_address *localip"
+.Ft void
+.Fn dns4_transmit_io "struct dns4_transmit *dt" "iopause_fd *x" "struct taia *deadline"
+.Ft int
+.Fn dns4_transmit_get "struct dns4_transmit *dt" "iopause_fd *x" "const struct taia *when"
+.Pp
+#define DNS4_TRANSMIT {0,0,0,0,-1,0,0,0,TAIA,0,0,IP4_ADDRESS,IP4_ADDRESS,DNS_TYPE}
+.Sh DESCRIPTION
+The
+.Nm dns4_transmit
+functions send a DNS query to some DNS servers using IPv4.
+They save the first useful response inside
+.Fa dt .
+The query asks for Internet records of type
+.Fa qtype
+for the domain name packet-encoded in
+.Fa qname .
+It requests server recursion if
+.Fa flag_recursive
+is non-zero.
+.Pp
+The IPv4 addresses of the DNS servers are listed in
+.Fa servers .
+The
+.Nm dns4_transmit
+functions record only a pointer to the contents of
+.Fa servers ,
+not a copy of
+.Fa servers ,
+so you must leave
+.Fa servers
+in place and unchanged.
+.Pp
+The
+.Nm dns4_transmit
+functions send outgoing packets from a local IPv4 address of
+.Fa localip .
+.Pp
+The dns_transmit functions act asynchronously.
+They are designed to be used in an iopause event loop:
+.Pp
+.Bd -literal
+iopause_fd x[1];
+struct taia deadline;
+struct taia stamp;
+struct dns4_transmit dt = DNS_TRANSMIT4;
+if (dns4_transmit_start(&dt, servers, recursive, name, type, ip) == -1) {
+  return -1;
+}
+for (;;) {
+  int r;
+  taia_now(&stamp);
+  taia_uint(&deadline, 120);
+  taia_add(&deadline, &deadline, &stamp);
+  dns4_transmit_io(&dt, x, &deadline);
+  iopause(x, 1, &deadline, &stamp);
+  r = dns4_transmit_get(&dt, x, &stamp);
+  if (r == -1) return -1;
+  if (r == 1) break;
+}
+
+dosomething(dt.packet, dt.packetlen);
+dns_transmit_free(&dt);
+return 0;
+.Ed
+.Pp
+.Fn dns4_transmit_start
+begins the query; it returns 0 on success, or -1 on failure.
+.Fn dns4_transmit_get
+continues the query; it returns 1 if the response has arrived, 0 if the response has not yet arrived, or -1 on failure.
+Here ``failure'' means a socket creation failure, a memory allocation failure, a timeout after the final query attempt, an empty list of servers (reported as EIO), a query longer than 65535 bytes (reported as EIO), a malformed response to the final query attempt (reported as EIO), or a server declaration of failure in response to the final query attempt (reported as EAGAIN).
+The
+.Nm dns4_transmit
+functions communicate through
+.Fa dt .
+They dynamically allocate a socket for network communication,
+memory for the DNS request,
+and memory for the DNS response;
+these resources are freed when you call
+.Fn dns4_transmit_free ,
+or when you call
+.Fn dns_transmit_start
+again with the same
+.Fa dt
+to handle another query.
+You must call
+.Fn dns_transmit_init
+to initialise
+.Fa dt
+before calling
+.Fn dns4_transmit_start
+the first time.
+Alternatively, have the static declaration initialised to
+.Va DNS_TRANSMIT4 .
+This is a departure from the original specification.
+.Pp
+If
+.Fn dns4_transmit_get
+returns 1,
+the DNS response is a byte string of length
+.Fa dt Ns No .packetlen ;
+.Fa dt Ns No .packet
+points to the first byte.
+The IPv4 address of the server that provided the response is stored at
+.Fa dt Ns No .servers->va Ns [ Ns Fa dt Ns No .curserver Ns ] .
+.Sh "TRANSMISSION DETAILS"
+The
+.Nm dns4_transmit
+functions send the query by UDP to the first address, wait 1 second for a response, send the query by UDP to the second address, wait 1 second for a response, etc.;
+then send the query by UDP to each address again, but waiting 3 seconds for each response;
+then again, waiting 11 seconds;
+then one last time, waiting 45 seconds.
+Recursive queries skip the 1-second step.
+.Fn dns4_transmit_get
+does not always return the first packet it sees:
+.Bl -enum
+.It
+If the packet has the wrong ID, shows the wrong query name, shows the wrong query type, or has qdcount different from 1:
+.N dns4_transmit_get
+discards the packet as irrelevant, and continues waiting for packets from the same server.
+.It
+If the packet has rcode different from 0 or 3:
+.Fn dns4_transmit_get
+discards the packet, and moves immediately to the next server.
+.It
+If the packet has the tc bit set:
+.Fn dns4_transmit_get
+tries a TCP connection to each address, waiting 10 seconds for the connection and, if a connection is established, 10 more seconds for a response.
+.El
+.Pp
+.Fn dns4_transmit_get
+does not listen to several servers simultaneously for responses for the same query.
+Each query transmission uses a new random port number and query ID.
+.Sh RETURN VALUES
+If
+.Nm dns4_transmit
+routine encounters a fatal error, it returns -1, setting
+.Va errno
+appropriately.
+.Sh SEE ALSO
+.Xr djbdns 3 ,
+.Xr dns6_transmit 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

@@ -1,0 +1,6 @@
+/usr/local
+
+This is the DJBDNS prefix directory.
+- Programs will be installed in .../bin
+- Libraries will be installed in .../lib
+- Header files will be installed in .../include/nemo

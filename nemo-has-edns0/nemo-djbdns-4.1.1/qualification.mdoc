@@ -1,0 +1,220 @@
+.Dd @DATE@
+.Dt qualification 5
+.Os @VERSION@
+.Sh NAME
+.Nm qualification
+.Nd User's guide to name qualification
+.Sh "OVERVIEW"
+.Nm Qualification
+means conversion
+of a short host name that you type, such as
+.Ad cheetah ,
+into a complete
+.Dq fully qualified
+domain name, such as
+.Ad cheetah.heaven.af.mil .
+.Pp
+This page explains the djbdns qualification procedure.
+These rules are followed by the
+.Xr dns_ip4_qualify 3
+library routine in djbdns, and by programs that use the
+.Xr dns_ip4_qualify 3
+routine.
+.Sh "REWRITING INSTRUCTIONS"
+Normally the djbdns  qualification procedure follows instructions listed in
+.Pa /etc/dnsrewrite ,
+a file created by your system administrator.
+You can override
+.Pa /etc/dnsrewrite
+by creating your own file and setting the
+.Ev $DNSREWRITEFILE
+environment variable to the name of that file.
+.Sh EXAMPLES
+Sample instructions:
+.Pp
+.Dl # anything.local -> me
+.Dl -.local:me
+.Dl # me -> 127.0.0.1
+.Dl =me:127.0.0.1
+.Dl # any.name.a -> any.name.af.mil
+.Dl *.a:.af.mil
+.Dl # name-without-dots -> name-without-dots.heaven.af.mil
+.Dl ?:.heaven.af.mil
+.Dl # remove trailing dot
+.Dl *.:
+.Pp
+Instructions are followed in order, each at most once. Each on a seperate line.
+There are four types of instructions:
+.Pp
+.Bl -tag
+.It = Ns Ar post Ns : Ns Ar new
+means that the host name
+.Ar post
+is replaced by
+.Ar new .
+.It * Ns Ar post Ns : Ns Ar new
+means that any name of the form
+.Li pre Ns Ar post
+is replaced by
+.Li pre Ns Ar new .
+.It ? Ns Ar post Ns : Ns Ar new
+means that any name of the form
+.Li pre Ns Ar post ,
+where
+.Em pre
+does not contain dots or brackets, is replaced by
+.Li pre Ns Ar new .
+.It - Ns Ar post Ns : Ns Ar new
+means that any name of the form
+.Li pre Ns Ar post
+is replaced by
+.Ar new .
+.El
+.Sh "SEARCHING"
+The djbdns qualification procedure can search through DNS for several possible qualifications of a name.
+For example, the name:
+.Pp
+.Dl cheetah+.heaven.af.mil+.af.mil
+.Pp
+is qualified as
+.Pa cheetah.heaven.af.mil
+if that name has IP addresses listed in DNS, or
+.Pa cheetah.af.mil
+otherwise.
+.Pp
+In general,
+.Li x Ns + Ns Ar y1 Ns + Ns Ar y2 Ns + Ns Ar y3
+is qualified as
+.Ar xy1
+if
+.Ar xy1
+has IP addresses listed in DNS; otherwise, as
+.Ar xy2
+if
+.Ar xy2
+has IP addresses listed in DNS; otherwise, as
+.Ar xy3 .
+You can list any number of +'s.
+.Pp
+Searching is applied after rewriting, so you can use a rewriting instruction such as
+.Pp
+.Dl ?:+.heaven.af.mil+.af.mil
+.Pp
+to have
+.Ad lion
+qualified as
+.Ad lion.heaven.af.mil
+or
+.Ad lion.af.mil ,
+and
+.Ad tiger
+qualified as
+.Ad tiger.heaven.af.mil
+or
+.Ad tiger.af.mil ,
+and so on.
+.Pp
+Searching is generally not a recommended feature.
+If you rely on
+.Ad gw
+being qualified as
+.Ad gw.af.mil ,
+and someone suddenly adds a new
+.Ad gw.heaven.af.mil ,
+you'll end up talking to the wrong host.
+It's better to rely on syntactic rules that you control.
+.Sh "COMPATIBILITY MECHANISMS"
+If the rewriting-instructions file does not exist, the djbdns qualification procedure looks for a local domain name in three places:
+.Bl -enum
+.It
+the
+.Ev $LOCALDOMAIN
+environment variable, if it is set; or
+.It
+the first
+.Li domain
+or
+.Li search
+line
+in
+.Pa /etc/resolv.conf ,
+if
+.Pa /etc/resolv.conf
+exists and has such a line; or
+.It
+everything after the first dot in the system's hostname.
+.El
+.Pp
+It then creates rewriting instructions of the form
+.Pp
+.Dl ?:. Ns Li domain
+.Dl *.:
+.Pp
+so that
+.Li . domain
+is added to any name without dots or brackets.
+.Pp
+You can specify searching in
+.Ev $LOCALDOMAIN
+by using several domain names separated by spaces.
+Your system administrator can specify searching in
+.Pa /etc/resolv.conf
+by putting several domains on a
+.Li search
+line.
+.Sh COMPATIBILITY
+Different DNS client programs use different qualification procedures.
+Two major differences between the djbdns qualification procedure and other qualification procedures:
+.Bl -bullet
+.It
+Most programs use only
+.Pa /etc/resolv.conf .
+They don't know anything about
+.Pa /etc/dnsrewrite
+and
+.Ev $DNSREWRITEFILE .
+.It
+Most long-running programs don't notice changes in
+.Pa /etc/resolv.conf ;
+they read
+.Pa /etc/resolv.conf
+when they start, and they don't reread it until they are restarted.
+In contrast, the djbdns qualification procedure checks for changes every 10 minutes or 10000 uses.
+.El
+.Pp
+Two minor differences:
+.Bl -enum
+.It
+Some programs interpret a
+.Ad domain
+line in
+.Pa /etc/resolv.conf
+as specifying a search list consisting of various suffixes of the domain.
+.It
+Many programs will search the local domain for names
+.Em with
+dots.
+.El
+.Pp
+If you want the local domain searched for names with dots, you can set it up with rewriting:
+.Pp
+.Dl # aol.com -> aol.com or aol.com.heaven.af.mil
+.Dl *:++.heaven.af.mil
+.Dl # but skip directly to heaven.af.mil if no dots
+.Dl ?++.heaven.af.mil:.heaven.af.mil
+.Sh SEE ALSO
+.Xr dnsipq 1 ,
+.Xr dns_ip4_qualify 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

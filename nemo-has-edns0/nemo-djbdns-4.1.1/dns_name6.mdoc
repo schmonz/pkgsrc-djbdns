@@ -1,0 +1,79 @@
+.Dd @DATE@
+.Dt dns_name6 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns4_name6 , dns6_name6 , dns_name6_domain
+.Nd IPv6 address to host name
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft int
+.Fn dns4_name6 "sa_vector *out" "const ip4_address *ip"
+.Ft int
+.Fn dns6_name6 "sa_vector *out" "const ip4_address *ip"
+.Ft int
+.Fn dns_name6_domain "dns_domain *dn" "const ip4_address *ip"
+.Sh DESCRIPTION
+.Fn dns4_name6
+looks up the domain name for the IPv6 address in
+.Fa ip ,
+using a IPv4 network connection.
+It puts all of the domain names into
+.Fa out
+and returns 0.
+If the relevant
+.Ad ip6.arpa
+domain does not exist in DNS, or has no PTR records,
+.Fa out
+will be empty.
+.Pp
+.Fn dns6_name6
+looks up the domain name for the IPv6 address in
+.Fa ip ,
+using a IPv6 network connection.
+It puts all of the domain names into
+.Fa out
+and returns 0.
+If the relevant
+.Ad ip6.arpa
+domain does not exist in DNS, or has no PTR records,
+.Fa out
+will be empty.
+.Pp
+If
+.Fn dns4_name6
+or
+.Fn dns6_name6
+has trouble with the DNS lookup or runs out of memory, it returns -1, setting
+.Va errno
+appropriately.
+It may or may not change
+.Fa out .
+.Pp
+.Fn dns_name6_domain
+is a low-level component of
+.Fn dns4_name6
+and
+.Fn dns6_name6 .
+It converts an IP address such as 4321:0:1:2:3:4:567:89ab into a domain name such as
+.Ad b.a.9.8.7.6.5.0.4.0.0.0.3.0.0.0.2.0.0.0.1.0.0.0.0.0.0.0.1.2.3.4.ip6.arpa
+and places the packet-encoded domain name into
+.Fa dn .
+.Sh SEE ALSO
+.Xr djbdns 3 ,
+.Xr dns_name_packet 3 ,
+.Xr dns_name4 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

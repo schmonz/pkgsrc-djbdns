@@ -1,0 +1,3 @@
+#!/bin/sh
+# WARNING: This file was auto-generated. Do not edit!
+exec gcc -I/usr/local/include -O2 -std=c99 -Wall -Werror -Wextra -Wuninitialized -Wcomments -Wwrite-strings -Wshadow -Wswitch-default -Wdeclaration-after-statement -Wcast-qual -Wcast-align -Wconversion -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wbad-function-cast -Wswitch-enum -c ${1+"$@"}

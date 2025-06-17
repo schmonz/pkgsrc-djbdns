@@ -1,0 +1,43 @@
+.Dd @DATE@
+.Dt dns_domain_equal 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns_domain_equal
+.Nd compare domain names
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft unsigned int
+.Fn dns_domain_equal "const dns_domain *dn1" "const dns_domain *dn2"
+.Sh DESCRIPTION
+.Fn dns_domain_equal
+compares the packet-encoded DNS names that
+.Fa dn1
+and
+.Fa dn2
+point to.
+It returns 1 if the names are the same, 0 if not.
+Lowercase ASCII and uppercase ASCII are considered the same.
+.Sh IMPLEMENATION NOTES
+Compared to the original specification, the routine
+.Fn dns_domain_diff
+now uses a dedicated data structure, see
+.Xr dns_domain 3 .
+.Sh SEE ALSO
+.Xr dns_domain 3 ,
+.Xr dns_domain_diff 3 ,
+.Xr djbdns 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

@@ -1,0 +1,57 @@
+.Dd @DATE@
+.Dt dns_domain_length 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns_domain_length , byte_domain_length , dns_domain_prefixlength
+.Nd find length of a domain name
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft unsigned int
+.Fn dns_domain_length "const dns_domain *dn"
+.Ft unsigned int
+.Fn dns_domain_labellength "const dns_domain *dn"
+.Ft unsigned int
+.Fn byte_domain_length "const void *dn"
+.Sh DESCRIPTION
+.Fn dns_domain_length
+returns the number of bytes in the packet-encoded DNS name that
+.Fa dn
+points to.
+.Pp
+.Fn dns_domain_labellength
+returns the number of bytes in the first packet-encoded DNS label that
+.Fa dn
+points to.
+.Pp
+.Fn byte_domain_length
+is a low level routine that returns the number of bytes in the packet-encoded DNS name block of bytes that
+.Fa dn
+points to.
+.Sh IMPLEMENATION NOTES
+.Fn dns_domain_length
+will always return a non-zero positive integer.
+.Pp
+Compared to the original specification, the
+.Fn dns_domain_length
+and
+.Fn dns_domain_labellength
+routines now use a dedicated data structure, see
+.Xr dns_domain 3 .
+.Sh SEE ALSO
+.Xr dns_domain 3 ,
+.Xr djbdns 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

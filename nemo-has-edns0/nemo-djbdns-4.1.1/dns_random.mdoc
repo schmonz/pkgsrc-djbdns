@@ -1,0 +1,65 @@
+.Dd @DATE@
+.Dt dns_random 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns_random
+.Nd The dns_random library interface
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft void
+.Fn dns_random_init "const char data[128]"
+.Ft unsigned int
+.Fn dns_random "unsigned int n"
+.Sh DESCRIPTION
+.Fn dns_random
+computes a pseudorandom 32-bit integer and returns that integer modulo
+.Fa n .
+It returns 0 if
+.Fa n
+is 0.
+.Pp
+.Fn dns_random_init
+initializes the pseudorandom number generator,
+taking account of seed, the current process ID,
+and the current time.
+.Sh "NOTES ON DNS QUERY SECURITY"
+A DNS client will accept any response that shows up at the right time,
+is addressed from the IP address of the legitimate server,
+is addressed to the UDP port used in the DNS query,
+repeats the query name and type used in the DNS query,
+and repeats the 16-bit ID used in the DNS query.
+.Pp
+An active sniffing attacker can easily forge responses by copying information from queries.
+Blind attackers need to guess the time, UDP port, and ID for the targeted query name.
+.Pp
+The
+.Xr dns_transmit4 3
+and
+.Xr dns_transmit6 3
+functions use
+.Fn dns_random
+to create query IDs and UDP ports.
+The
+.Fn dns_random
+generator is designed to be extremely difficult to predict for an attacker who cannot guess seed.
+Note, however, that there are only about a billion possible ID-port pairs,
+so a prolonged blind attack will succeed eventually.
+.Sh SEE ALSO
+.Xr djbdns 3 ,
+.Xr dns_transmit4 3 ,
+.Xr dns_transmit6 3 ,
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

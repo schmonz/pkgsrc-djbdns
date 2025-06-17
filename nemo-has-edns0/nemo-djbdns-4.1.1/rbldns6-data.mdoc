@@ -1,0 +1,108 @@
+.Dd @DATE@
+.Dt rbldns6-data 8
+.Os @VERSION@
+.Sh NAME
+.Nm rbldns6-data
+.Nd data tool for
+.Xr rbldns6 8
+(IPv6 network connection)
+.Sh SYNOPSIS
+.Nm rbldns6-data
+.Sh DESCRIPTION
+.Nm rbldns6-data
+reads an IP address list from a file named
+.Pa data
+in the current directory.
+It creates
+.Pa data.cdb
+in a binary format designed for fast access by
+.Xr rbldns6 8 .
+It may also create some other files with names beginning with
+.Pa data .
+.Pp
+.Nm rbldns6-data
+updates
+.Pa data.cdb
+atomically, so you can use it safely while
+.Xr rbldns6 8
+is running.
+If anything goes wrong with the creation of
+.Pa data.cdb ,
+.Nm rbldns6-data
+stops and leaves the old
+.Pa data.cdb
+in place.
+.Sh "DATA FORMAT"
+.Bl -tag
+.It Ar ip
+The IP address
+.Ar ip
+is on the list.
+.Ar ip
+must be enclosed in square brackets.
+.It Ar ip Ns / Ns Ar n
+All IP addresses that share the first
+.Ar n
+bits of the IP address
+.Ar ip
+are on the list.
+For example,
+.Em [1:2:3::]/24
+means all
+.Em 1:2:3:*
+addresses.
+.Ar n
+must be at least 8, but no greater than 64, and all bits past the
+.Ar n Ns th
+in
+.Ar ip
+will be set to 0.
+.Ar ip
+must be enclosed in square brackets.
+.It : Ns Ar a Ns : Ns Ar txt
+DNS queries for addresses on the list will receive an A record of
+.Ar a
+and a TXT record of
+.Ar txt .
+Typically
+.Ar a
+is
+.Ad 127.0.0.2
+and
+.Ar txt
+is a pointer to a web page about the list.
+If
+.Ar txt
+ends with
+.Em $ ,
+.Xr rbldns6 8
+replaces the
+.Em $
+with the IP address.
+.It # comment
+Comment line. The line is ignored.
+.El
+.Sh IMPLEMENTATION NOTES
+Given that the IPv6 address space is very large,
+.Xr rbldns6 8
+only compares the first 64 bits (or less) of an IPv6 address.
+Thus
+.Nm rbldn6-data
+only records the first 64 bits of an IPv6 address.
+.Sh SEE ALSO
+.Xr rbldns6 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+This software is based on the original
+.Nm rbldns-data
+software developed by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

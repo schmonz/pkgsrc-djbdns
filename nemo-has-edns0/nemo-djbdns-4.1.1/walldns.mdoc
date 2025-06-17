@@ -1,0 +1,73 @@
+.Dd @DATE@
+.Dt walldns 8
+.Os @VERSION@
+.Sh NAME
+.Nm walldns
+.Nd a reverse DNS wall
+.Sh SYNOPSIS
+.Nm walldns
+.Sh DESCRIPTION
+.Nm walldns
+is a reverse DNS wall.
+It accepts iterative DNS queries for
+.Ad in-addr.arpa
+domains from hosts around the Internet, and supplies generic responses that avoid revealing local host information.
+.Pp
+For example,
+.Nm walldns
+provides a PTR record for
+.Ad 4.3.2.1.in-addr.arpa
+showing
+.Ad 4.3.2.1.in-addr.arpa
+as the name of IP address
+.Ad 1.2.3.4 ,
+and a matching A record showing
+.Ad 1.2.3.4
+as the IP address of
+.Ad 4.3.2.1.in-addr.arpa .
+.Sh "CONFIGURATION"
+Normally
+.Nm walldns
+is set up by the
+.Xr walldns-conf 8
+program.
+.Pp
+.Nm walldns
+runs chrooted in the directory specified by the
+.Ev $ROOT
+environment variable, under the uid and gid specified by the
+.Ev $UID
+and
+.Ev $GID
+environment variables.
+.Pp
+.Nm walldns
+listens for incoming UDP packets addressed to port 53 of
+.Ev $IP .
+It does not listen for TCP queries.
+.Sh IMPLEMENTATION DETAILS
+.Nm walldns
+rejects inverse queries, non-Internet-class queries, truncated packets, packets that contain anything other than a single question, queries for domains outside
+.Ad in-addr.arpa ,
+and request types other than A, PTR, and *.
+.Pp
+.Nm walldns
+does not include NS or SOA records with its responses.
+.Pp
+.Nm walldns
+uses TTLs slightly over one week.
+.Sh SEE ALSO
+.Xr walldns-conf 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

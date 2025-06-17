@@ -1,0 +1,89 @@
+.Dd @DATE@
+.Dt wilddns 8
+.Os @VERSION@
+.Sh NAME
+.Nm wilddns6
+.Nd a domain-name-listing DNS server
+.Sh SYNOPSIS
+.Nm wilddns6
+.Sh DESCRIPTION
+.Nm wilddns6
+is a domain-name-listing DNS server.
+It accepts iterative DNS queries from hosts around the Internet via IPv6, and responds with locally configured information.
+.Sh "CONFIGURATION"
+Normally
+.Nm wilddns6
+is set up by the
+.Xr wilddns6-conf 8
+program.
+.Pp
+.Nm wilddns6
+runs chrooted in the directory specified by the
+.Ev $ROOT
+environment variable, under the uid and gid specified by the
+.Ev $UID
+and
+.Ev $GID
+environment variables.
+.Pp
+.Nm wilddns6
+listens for incoming UDP packets addressed to port 53 of
+.Ev $IP ,
+via an IPv6 connection.
+It does not listen for TCP queries.
+.Pp
+.Nm wilddns6
+uses TTLs slightly over half an hour.
+.Pp
+.Nm wilddns6
+rejects inverse queries, non-Internet-class queries, truncated packets, packets that contain anything other than a single query, query types other than A, AAAA, or *.
+It looks up queries inside
+.Pa data.cdb ,
+a binary file created by
+.Xr wilddns-data 8 .
+.Pp
+All subdomain queries of a domain that is listed, will also be successful.
+.Sh ENVIRONMENT
+.Bl -tag
+.It A
+.Nm wilddns6
+will answer A type queries of listed domains with this value.
+The value must be a properly formatted IPv4 address.
+.It AAAA
+.Nm wilddns6
+will answer AAAA type queries of listed domains with this value.
+The value must be a properly formatted IPv6 address.
+.It ROOT
+The chroot direct that
+.Nm wilddns6
+will run.
+.It UID
+uid of the process that
+.Nm wilddns6
+will run.
+.It GID
+gid of the process that
+.Nm wilddns6
+will run.
+.It IP
+IPv6 address that
+.Nm wilddns6
+will listen on.
+.El
+.Sh SEE ALSO
+.Xr wilddns 8 ,
+.Xr wilddns6-conf 8 ,
+.Xr wilddns-data 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Based apon the software
+.Xr rbldns 8
+by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

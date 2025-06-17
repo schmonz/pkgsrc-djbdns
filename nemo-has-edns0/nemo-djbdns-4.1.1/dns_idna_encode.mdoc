@@ -1,0 +1,49 @@
+.Dd @DATE@
+.Dt dns_idna_encode 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns_idna_encode
+.Nd encode a series of UTF-8 characters into IDNA encoded ASCII 7-bit characters
+.Sh LIBRARY
+Nemo DJB Library (libdjb, -ldjb)
+.Sh SYNOPSIS
+.In nemo/stralloc.h
+.Ft unsigned int
+.Fn dns_idna_encode "stralloc *out" "const stralloc *in"
+.Sh DESCRIPTION
+.Fn dns_idna_encode
+takes a series of UTF-8 encoded characters in the
+.Dt stralloc
+structure
+.Fa in
+and performs Punycode (RFC 3492) encoding and returns the result in the
+.Dt stralloc
+structure
+.Fa out .
+.Sh ERRORS
+If
+.Fn dns_idna_encode
+runs out of memory, it will return 0 and set
+.Va errno
+appropriately.
+.Sh SEE ALSO
+.Xr uint32_vector_utf8_decode 3
+.Pp
+RFC 3492 - Punycode: A Bootstring encoding of Unicode for Internationalized Domain Names in Applications (IDNA)
+.Pp
+RFC 5890 - Internationalized Domain Names for Applications (IDNA): Definitions and Document Framework
+.Pp
+RFC 5891 - Internationalized Domain Names in Applications (IDNA): Protocol
+.Pp
+.Ad http://www.nemostar.org/libdjb/
+.Sh AUTHORS
+.An -nosplit
+This software and the modifications have been placed in the public domain.
+.Pp
+Original development of software from
+.An "RFC 3492"
+and
+.An "Adam M. Costello" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

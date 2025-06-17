@@ -1,0 +1,51 @@
+.Dd @DATE@
+.Dt axfr-notify 8
+.Os @VERSION@
+.Sh NAME
+.Nm axfr-notify
+.Nd notify all secondary DNS servers for a zone that there is a change to the zone records
+.Sh SYNOPSIS
+.Nm axfr-notify
+.Op Fl 4
+.Op Fl 6
+.Op Fl d
+.Op Fl s
+.Ar z
+.Sh DESCRIPTION
+.Nm axfr-notify
+sends a NOTIFY request in DNS-over-UDP format to all secondary DNS servers for the domain
+.Ar z .
+.Pp
+.Nm axfr-notify
+looks up the SOA record for the zone and all NS records.
+It uses this information to notify the appropiate secondary DNS servers for the zone.
+.Sh OPTIONS
+.Bl -tag
+.It Fl 4
+Perform notifications and DNS lookups via IPv4, if a failure occurs, then perform lookups via IPv6.
+.It Fl 6
+Perform notifications and DNS lookups via IPv6, if a failure occurs, then perform lookups via IPv4.
+.It Fl d
+Perform all lookups, but do not perform the notification.
+.It Fl s
+Notify the SOA server(s), as well as all of the secondary DNS servers.
+.El
+.Sh SEE ALSO
+.Xr axfrdns 8,
+.Xr tinydns 8 ,
+.Xr tinydns-data 8 ,
+.Xr tcpclient 1 ,
+.Xr softlimit 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

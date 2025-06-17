@@ -1,0 +1,101 @@
+.Dd @DATE@
+.Dt wilddns-conf 8
+.Os @VERSION@
+.Sh NAME
+.Nm wilddns-conf
+.Nd sets up an domain-name-listing DNS service (IPv4 network connection)
+.Sh SYNOPSIS
+.Nm wilddns-conf
+.Ar acct
+.Ar logacct
+.Ar D
+.Ar ip
+.Sh DESCRIPTION
+.Nm wilddns-conf
+creates a service directory
+.Ar D
+that runs
+.Xr wilddns 8 .
+The name
+.Ar D
+must start with a slash and must not contain any special characters.
+Normally
+.Ar D
+is
+.Pa /etc/wilddns .
+.Pp
+You can run the service under
+.Xr svscan 8
+by creating a symbolic link in the
+.Xr svscan 8
+directory:
+.Pp
+.Dl "ln -s" Ar D Ns Pa /service
+.Pp
+The service will start within five seconds, and will be restarted upon reboot.
+You can use
+.Xr svctl 8
+to control the service.
+.Pp
+.Nm wilddns-conf
+arranges for
+.Xr wilddns 8
+to chroot to
+.Ar D Ns Pa /root
+and to run under the uid and gid of
+.Ar acct .
+The name
+.Ar acct
+must not contain any special characters.
+.Pp
+.Nm wilddns-conf
+creates
+.Ar D Ns Pa /root/Makefile
+to run
+.Xr wilddns-data 8
+upon request.
+.Pp
+.Nm wilddns-conf
+arranges for
+.Xr wilddns 8
+to listen for UDP packets on port 53 of
+.Ar ip ,
+and to send outgoing packets from
+.Ar ip .
+.Pp
+.Nm wilddns-conf
+creates an automatically rotated log directory in
+.Ar D Ns Pa /log/main .
+The logs are owned by
+.Ar logacct .
+The corresponding
+.Xr multilog 8
+processes run under the uid and gid of
+.Ar logacct .
+The name
+.Ar logacct
+must not contain any special characters.
+.Sh SEE ALSO
+.Xr wilddns 8 ,
+.Xr wilddns6 8 ,
+.Xr wilddns-data 8
+.Xr svscan 8 ,
+.Xr svctl 8 ,
+.Xr multilog 8 ,
+.Xr axfrdns-conf 8 ,
+.Xr dnscache-conf 8 ,
+.Xr tinydns-conf 8 ,
+.Xr walldns-conf 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Sh AUTHORS
+.An -nosplit
+The base apon the software
+.Xr rbldns-conf 8
+by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .
+.Pp
+This software and the modifications have been placed in the public domain.

@@ -1,0 +1,17 @@
+gcc -I/usr/local/include -O2 -std=c99 -Wall -Werror -Wextra -Wuninitialized -Wcomments -Wwrite-strings -Wshadow -Wswitch-default -Wdeclaration-after-statement -Wcast-qual -Wcast-align -Wconversion -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wbad-function-cast -Wswitch-enum
+
+This will be used to compile .c files.
+
+Examples...
+
+gcc+glibc (glibc 2.20+) - the first 2 defines are required
+gcc -D_DEFAULT_SOURCE -D_POSIX_SOURCE -I/usr/local/include -O2 -std=c99 -Wall -Werror -Wextra -Wuninitialized -Wcomments -Wwrite-strings -Wshadow -Wswitch-default -Wdeclaration-after-statement -Wcast-qual -Wcast-align -Wconversion -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wbad-function-cast
+
+gcc+glibc (< glibc 2.20) - the first 2 defines are required
+gcc -D_BSD_SOURCE -D_POSIX_SOURCE -I/usr/local/include -O2 -std=c99 -Wall -Werror -Wextra -Wuninitialized -Wcomments -Wwrite-strings -Wshadow -Wswitch-default -Wdeclaration-after-statement -Wcast-qual -Wcast-align -Wconversion -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wbad-function-cast
+
+GCC 3.x
+gcc -I/usr/local/include -O2 -std=c99 -Wall -Werror -Wuninitialized -Wcomments -Wwrite-strings -Wshadow -Wswitch-default -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith -Wbad-function-cast
+
+Other
+gcc -I/usr/local/include -W -Wall -Werror -O2

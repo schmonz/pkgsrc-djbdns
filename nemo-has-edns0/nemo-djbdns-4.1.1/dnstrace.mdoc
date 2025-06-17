@@ -1,0 +1,82 @@
+.Dd @DATE@
+.Dt dnstrace 1
+.Os @VERSION@
+.Sh NAME
+.Nm dnstrace
+.Nd dns lookup tool using IPv4 network connections
+.Sh SYNOPSIS
+.Nm dnstrace
+.Ar t
+.Ar fqdn
+.Ar r
+.Sh DESCRIPTION
+.Nm dnstrace
+searches for all DNS servers that can affect the resolution of records of type
+.Ar t
+under the domain name
+.Ar fqdn ,
+starting from the root server
+.Ar r .
+You can list more than one root server.
+.Pp
+.Nm dnstrace
+uses the standard DNS resolution algorithm, but follows all possible paths in the algorithm.
+It prints all responses it receives from DNS servers;
+it also prints warnings about slow servers, dead servers, misdelegated
+.Dq ( lame )
+servers, and misformatted packets.
+.Nm dnstrace
+is similar in spirit to DOC and dnswalk but is much more effective than those tools at debugging resolution problems.
+.Pp
+You can pipe
+.Nm dnstrace
+through
+.Xr dnstracesort 1
+for human-friendly output.
+.Nm dnstrace
+can take a long time to run, so standard procedure is to save its output in a file:
+.Pp
+.D1 dnstrace any www.aol.com a.root-servers.net > AOL &
+.Pp
+Then you can run
+.Xr dnstracesort 1
+to see the results so far:
+.Pp
+.D1 dnstracesort < AOL | less
+.Pp
+The
+.Xr dnstracesort 1
+output uses
+.Xr ul 1
+codes for boldface and underline; these codes are displayed properly by
+.Xr less 1 .
+.Pp
+Beware that, as of January 2001,
+.Nm dnstrace
+produces more than 5 megabytes of output for the complete trace of cr.yp.to starting from all the root servers.
+It ends up sending more than 6000 queries to more than 200 different servers.
+.Sh SEE ALSO
+.Xr dnsip 1 ,
+.Xr dnsip6 1 ,
+.Xr dnsipq 1 ,
+.Xr dnsip6q 1 ,
+.Xr dnsmx 1 ,
+.Xr dnstxt 1 ,
+.Xr dnsqr 1 ,
+.Xr dnsq 1 ,
+.Xr dnsname 1 ,
+.Xr less 1 ,
+.Xr tinydns-get 1
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

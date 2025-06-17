@@ -1,0 +1,65 @@
+.Dd @DATE@
+.Dt dnscache-data 8
+.Os @VERSION@
+.Sh NAME
+.Nm dnscache-data
+.Nd data tool for
+.Xr dnscache 8
+.Sh SYNOPSIS
+.Nm dnscache-data
+.Sh DESCRIPTION
+.Nm dnscache-data
+reads an domain name list from a file named
+.Pa data
+in the current directory.
+It creates
+.Pa data.cdb
+in a binary format designed for fast access by
+.Xr dnscache 8 .
+It may also create some other files with names beginning with
+.Pa data .
+.Pp
+.Nm dnscache-data
+updates
+.Pa data.cdb
+atomically, so you can use it safely while
+.Xr dnscache 8
+is running.
+If anything goes wrong with the creation of
+.Pa data.cdb ,
+.Nm dnscache-data
+stops and leaves the old
+.Pa data.cdb
+in place.
+.Sh "DATA FORMAT"
+.Bl -tag
+.It + Ns Ar fqdn Ns : Ns Ar ip
+The fully qualified domain name
+.Ar fqdn
+has a name server that is referenced by the IPv4 address
+.Ar ip .
+More than one IPv4 address can be listed, each seperated by a single colon.
+To list root servers,
+.Ar fqdn
+will be a value of
+.Sq \&.
+followed by a list of IPv4 addresses.
+.It # comment
+Comment line. The line is ignored.
+.El
+.Sh SEE ALSO
+.Xr dnscache 8
+.Xr dnscache-list2data 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Sh AUTHORS
+.An -nosplit
+The based apon the software
+.Xr rbldns-data 8
+by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .
+.Pp
+This software and the modifications have been placed in the public domain.

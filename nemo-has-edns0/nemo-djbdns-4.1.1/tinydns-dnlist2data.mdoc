@@ -1,0 +1,91 @@
+.Dd @DATE@
+.Dt tinydns-dnlist2data 8
+.Os @VERSION@
+.Sh NAME
+.Nm tinydns-dnlist2data
+.Nd data conversion tool for domain name to
+.Xr tinydns-data 8
+SOA format.
+.Sh SYNOPSIS
+.Nm tinydns-dnlist2data
+.Op Fl l Ar ttl
+.Op Fl s Ar serial
+.Op Fl f Ar refresh
+.Op Fl t Ar retry
+.Op Fl e Ar expire
+.Op Fl m Ar minimum
+.Sh DESCRIPTION
+.Nm tinydns-dnlist2data
+reads a list of domain names from standard input and creates a series of
+.Xr tinydns-data 8
+formatted record lines on standard output.
+Currently it only creates SOA resource records.
+.Sh "OPTIONS"
+.Bl -tag
+.It Fl l Ar ttl
+Set the
+.Dq time to live
+record parameter to
+.Ar ttl .
+.It Fl s Ar serial
+Set the
+.Dq serial number
+record parameter to
+.Ar serial .
+.It Fl f Ar refresh
+Set the
+.Dq refresh time
+record parameter to
+.Ar refresh .
+.It Fl t Ar retry
+Set the
+.Dq retry time
+record parameter to
+.Ar retry .
+.It Fl e Ar expire
+Set the
+.Dq expire time
+record parameter to
+.Ar expire .
+.It Fl m Ar minimum
+Set the
+.Dq minimum time
+record parameter to
+.Ar minimum .
+.El
+.Sh EXAMPLES
+If a file
+.Pa example.names
+contains a list of RRs:
+.Pp
+.Dl EXAMPLE.COM
+.Dl EXAMPLE.NET
+.Dl EXAMPLE.COM
+.Pp
+and it is piped through
+.Nm tinydns-dnlist2data
+as per:
+.Pp
+.Dl cat example.names | tinydns-dnlist2data
+.Pp
+the result would be:
+.Pp
+.Dl SOA:example.com::::a.ns.example.com:hostmaster.example.com:::::
+.Dl SOA:example.net::::a.ns.example.net:hostmaster.example.net:::::
+.Dl SOA:example.org::::a.ns.example.org:hostmaster.example.org:::::
+.Pp
+In these examples
+.Xr tiydns-data 8
+will supply appropriate default vales for the empty fields.
+.Sh SEE ALSO
+.Xr tinydns 8,
+.Xr tinydns7 8,
+.Xr tinydns-data 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Stephen A. Welker" .

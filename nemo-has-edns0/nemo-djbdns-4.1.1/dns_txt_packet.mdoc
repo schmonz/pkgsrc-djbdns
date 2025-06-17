@@ -1,0 +1,55 @@
+.Dd @DATE@
+.Dt dns_txt_packet 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns_txt_packet
+.Nd low level packet manipulation of TXT records for a domain
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft int
+.Fn dns_txt_packet "sa_vector *out" "const byte_t *buf" "unsigned int len" "const dns_type *type"
+.Sh DESCRIPTION
+.Fn dns_txt_packet
+is a low-level component of
+.Xr dns_txt 3
+and
+.Xr dns_spf ,
+designed to support asynchronous DNS lookups.
+It reads a DNS packet of length
+.Fa len
+from
+.Fa buf ,
+extracts the resource records specified by
+.Fa type
+from the answer section of the packet, puts the results into
+.Fa out ,
+and returns 0 or -1 the same way as
+.Xr dns_txt 3
+or
+.Xr dns_spf 3 .
+.Pp
+TXT and SPF resource records use the same encoding of data.
+You have to specify which type of resource record in the argument
+.Fa type .
+Valid preset types are listed in the
+.Pa dns.h
+header file.
+.Sh SEE ALSO
+.Xr djbdns 3 ,
+.Xr dns_txt 3
+.Xr dns_spf 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

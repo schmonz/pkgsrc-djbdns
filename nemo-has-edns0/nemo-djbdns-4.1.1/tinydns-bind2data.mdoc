@@ -1,0 +1,46 @@
+.Dd @DATE@
+.Dt tinydns-bind2data 8
+.Os @VERSION@
+.Sh NAME
+.Nm tinydns-bind2data
+.Nd data conversion tool for
+.Xr tinydns-data 8
+.Sh SYNOPSIS
+.Nm tinydns-bind2data
+.Sh DESCRIPTION
+.Nm tinydns-bind2data
+reads BIND zone data from standard input and creates a series of
+.Xr tinydns-data 8
+formatted data lines on standard output.
+.Sh EXAMPLES
+If a file
+.Pa example.zone
+contains a list of RRs:
+.Pp
+.Dl EXAMPLE.COM 360000 IN NS NS1.EXAMPLE.COM.
+.Dl NS1.EXAMPLE.COM. 360000 IN A 192.168.1.1
+.Dl NS1.EXAMPLE.COM. 360000 IN AAAA fc00::1
+.Pp
+and it is piped through
+.Nm tinydns-bind2data
+as per:
+.Pp
+.Dl cat example.zone | tinydns-bind2data
+.Pp
+the result would be:
+.Pp
+.Dl &:example.com:360000:::ns1.example.com
+.Dl +:ns1.example.com:360000:::192.168.1.1
+.Dl +:ns1.example.com:360000:::[fc00::1]
+.Sh SEE ALSO
+.Xr tinydns 8,
+.Xr tinydns7 8,
+.Xr tinydns-data 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Stephen A. Welker" .

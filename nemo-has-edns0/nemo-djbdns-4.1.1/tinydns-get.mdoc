@@ -1,0 +1,55 @@
+.Dd @DATE@
+.Dt tinydns-get 1
+.Os @VERSION@
+.Sh NAME
+.Nm tinydns-get
+.Nd is like
+.Xr dnsq 1 ,
+but obtains its results from data.cdb in the current directory
+.Sh SYNOPSIS
+.Nm tinydns-get
+.Ar t
+.Ar fqdn
+.Op Ar ip
+.Sh DESCRIPTION
+.Nm tinydns-get
+is like
+.Xr dnsq 1 ,
+but obtains its results from
+.Pa data.cdb
+in the current directory, in exactly the same way that
+.Xr tinydns 8
+and
+.Xr axfrdns 8
+obtain results from
+.Pa data.cdb
+in their root directories.
+If
+.Ar ip
+is provided, it simulates the results of a query from IP address
+.Ar ip ;
+this matters if
+.Pa data.cdb
+differentiates among clients in different locations.
+.Sh SEE ALSO
+.Xr dnsq 1 ,
+.Xr dnsip 1 ,
+.Xr dnsipq 1 ,
+.Xr dnsmx 1 ,
+.Xr dnstxt 1 ,
+.Xr dnsqr 1 ,
+.Xr dnsname 1 ,
+.Xr dnstrace 1
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

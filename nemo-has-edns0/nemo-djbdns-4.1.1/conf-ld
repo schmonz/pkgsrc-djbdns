@@ -1,0 +1,5 @@
+gcc -s -L /usr/local/lib
+
+This will be used to link .o files into an executable.
+
+gcc -L /usr/local/lib

@@ -1,0 +1,86 @@
+.Dd @DATE@
+.Dt dbldns-data 8
+.Os @VERSION@
+.Sh NAME
+.Nm dbldns-data
+.Nd data tool for
+.Xr dbldns 8
+or
+.Xr dbldns6 8
+.Sh SYNOPSIS
+.Nm dbldns-data
+.Sh DESCRIPTION
+.Nm dbldns-data
+reads an domain name list from a file named
+.Pa data
+in the current directory.
+It creates
+.Pa data.cdb
+in a binary format designed for fast access by
+.Xr dbldns 8
+or
+.Xr dbldns6 8 .
+It may also create some other files with names beginning with
+.Pa data .
+.Pp
+.Nm dbldns-data
+updates
+.Pa data.cdb
+atomically, so you can use it safely while
+.Xr dbldns 8
+or
+.Xr dbldns6 8
+is running.
+If anything goes wrong with the creation of
+.Pa data.cdb ,
+.Nm dbldns-data
+stops and leaves the old
+.Pa data.cdb
+in place.
+.Sh "DATA FORMAT"
+.Bl -tag
+.It + Ns Ar fqdn
+The fully qualified domain name
+.Ar fqdn
+is on the list.
+.It : Ns Ar ip Ns : Ns Ar txt
+DNS queries for addresses on the list will receive an A record of
+.Ar ip
+and a TXT record of
+.Ar txt .
+Typically
+.Ar ip
+is
+.Li 127.0.0.2
+and
+.Ar txt
+is a pointer to a web page about the list.
+If
+.Ar txt
+ends with
+.Em $ ,
+.Xr dbldns 8
+or
+.Xr dbldns6 8
+will replace the
+.Em $
+with the queried domain name.
+.It # comment
+Comment line. The line is ignored.
+.El
+.Sh SEE ALSO
+.Xr dbldns 8
+.Xr dbldns6 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Sh AUTHORS
+.An -nosplit
+The based apon the software
+.Xr rbldns-data 8
+by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .
+.Pp
+This software and the modifications have been placed in the public domain.

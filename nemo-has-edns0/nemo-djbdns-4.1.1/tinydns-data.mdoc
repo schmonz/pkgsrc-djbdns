@@ -1,0 +1,945 @@
+.Dd @DATE@
+.Dt tinydns-data 8
+.Os @VERSION@
+.Sh NAME
+.Nm tinydns-data
+.Nd data tool for tinydns or tinydns6
+.Sh SYNOPSIS
+.Nm tinydns-data
+.Sh DESCRIPTION
+.Nm tinydns-data
+reads local DNS information from a file named
+.Pa data
+in the current directory.
+It creates
+.Pa data.cdb
+in a binary format designed for fast access by
+.Xr tinydns 8
+or
+.Xr tinydns6 8 .
+It may also create some other files with names beginning with
+.Pa data .
+.Pp
+.Nm tinydns-data
+updates
+.Pa data.cdb
+atomically, so you can use it safely while
+.Xr tinydns 8
+or
+.Xr tinydns6 8
+is running.
+If anything goes wrong with the creation of
+.Pa data.cdb ,
+.Nm tinydns-data
+stops and leaves the old
+.Pa data.cdb
+in place.
+.Sh "DATA FORMAT"
+The DNS information in
+.Pa data
+is a series of lines.
+There are several types of lines, as shown below.
+.Pp
+Each line starts with a special verb and continues with a series of colon-separated fields.
+In some cases the fields may be omitted; however, all colons must be included except at the end of the line.
+Spaces and tabs at the end of a line are ignored.
+Blank lines are ignored.
+.Pp
+Each line contains a
+.Ar ttl
+.Dq ( time to live )
+specifying the number of seconds that the line's DNS records may be cached.
+Beware that cache times below 300 seconds will be treated as 300 by some clients, and NS cache times below 2 seconds can cause lookup failures.
+You may omit
+.Ar ttl ;
+.Nm tinydns-data
+will use default cache times, carefully selected to work well in normal situations.
+.Pp
+You may include a timestamp on each line.
+If
+.Ar ttl
+is nonzero (or omitted), the timestamp is a starting time for the information in the line; the line will be ignored before that time.
+If
+.Ar ttl
+is zero, the timestamp is an ending time
+.Dq ( time to die )
+for the information in the line;
+.Xr tinydns 8
+or
+.Xr tinydns6 8
+dynamically adjusts
+.Ar ttl
+so that the line's DNS records are not cached for more than a few seconds past the ending time.
+A timestamp is an external TAI64 timestamp, printed as 16 lowercase hexadecimal characters.
+For example, the lines:
+.Pp
+.Dl +:www.example.com:0:4000000038af1379::1.2.3.4
+.Dl +:www.example.com::4000000038af1379::1.2.3.7
+.Pp
+specify that
+.Ad www.example.com
+will have address
+.Ad 1.2.3.4
+until time
+.Em 4000000038af1379
+.Pq 2000-02-19 22:04:31 UTC
+and will then switch to IP address
+.Ad 1.2.3.7 .
+.Pp
+You may include a client location on each line.
+The line is ignored for clients outside that location.
+Client locations are specified by
+.Em %
+lines:
+.Pp
+.Dl % Ns : Ns Ar lo Ns : Ns Ar ip4prefix Ns : Ns Ar ip6prefix
+.Pp
+means that IP addresses starting with
+.Ar ip4prefix
+or
+.Ar ip6prefix
+are in location
+.Ar lo .
+.Ar lo
+is a sequence of one or two ASCII letters.
+.Pp
+An
+.Ar ip4prefix
+if a partial/full IPv4 address with a bit mask. The mask must be 8 bit aligned.
+.Pp
+An
+.Ar ip6prefix
+if a partial/full IPv6 address (inside square brackets) with a bit mask. The mask must be 8 bit aligned.
+.Pp
+A client is in only one location; longer prefixes override shorter prefixes.
+For example,
+.Pp
+.Dl %:in:192.168.0.0/16:[fc00]/16
+.Dl %:ex
+.Dl +:jupiter.example.com:::in:192.168.1.2:[fc00::1]
+.Dl +:jupiter.example.com:::ex:1.2.3.4:[1234::5]
+.Pp
+The example specifies that:
+.Pp
+For IPv4 clients,
+.Ad jupiter.example.com
+has address
+.Ad 192.168.1.2
+for clients in the
+.Ad 192.168.*
+network and address
+.Ad 1.2.3.4
+for everyone else.
+.Pp
+For IPv6 clients,
+.Ad jupiter.example.com
+has address
+.Ad fc00::1
+for clients in the
+.Ad fc00:*
+network and address
+.Ad 1234::5
+for everyone else.
+.Sh "IP ADDRESS FORMAT"
+.Bl -tag -width 5em
+.It IPv4 Addresses
+IPv4 addresses must be expressed in quad-dotted form (except when used in location prefixes - see above). eg: 192.168.1.1
+.It IPv6 Addresses
+IPv6 addresses must be enclosed in square brackets and can use the condensed format. eg: [fc00::0]
+.El
+.Sh "COMMON DATA LINES"
+.Bl -tag -width 5em
+.It # comment
+Comment line. The line is ignored.
+.It . Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp Ns : Ns Ar lo Ns : Ns Ar x Ns : Ns Ar ip Ns Op : Ns Ar ip Ns : Ns ...
+Name server for our domain
+.Ar fqdn .
+.Nm tinydns-data
+creates:
+.Pp
+.Bl -enum -compact
+.It
+an NS
+.Dq ( name server )
+record showing
+.Ar x Ns Li .ns. Ns Ar fqdn
+as a name server for
+.Ar fqdn ;
+.It
+an A (IPv4) and/or AAAA (IPv6)
+.Dq ( address )
+record showing
+.Ar ip
+as the IP address of
+.Ar x Ns Li .ns. Ns Ar fqdn ;
+.It
+an SOA
+.Dq ( start of authority )
+record for
+.Ar fqdn
+listing
+.Ar x Ns Li .ns. Ns Ar fqdn
+as the primary name server and
+.Ad hostmaster@ Ns Ar fqdn
+as the contact address.
+.El
+.Pp
+You may have several name servers for one domain, with a different
+.Ar x
+for each server.
+.Xr tinydns 8
+and
+.Xr tinydns6 8
+will return only one SOA record per domain.
+If
+.Ar x
+contains a dot then
+.Nm tinydns-data
+will use
+.Ar x
+as the server name
+rather than
+.Ar x Ns Li .ns. Ns Ar fqdn .
+This feature is provided only for compatibility reasons; names not ending with
+.Ar fqdn
+will force clients to contact parent servers much more often than they otherwise would, and will reduce the overall reliability of DNS.
+You should omit
+.Ar ip
+if
+.Ar x
+has IP addresses assigned elsewhere in
+.Pa data ;
+in this case,
+.Nm tinydns-data
+will omit the A or AAAA record.
+Examples:
+.Pp
+.Dl .:example.com::::a:192.168.1.1:[fc00::1]
+.Pp
+creates an NS record showing
+.Ad a.ns.example.com
+as a name server for
+.Ad example.com ,
+an A record showing
+.Ad 192.168.1.1
+and a AAAA record showing
+.Ad fc00::1
+as the IP addresses of
+.Ad a.ns.example.com ,
+and an SOA record for
+.Ad example.com .
+.Pp
+.Dl .:example.com::::dns2.example.com:192.168.1.1
+.Pp
+creates an NS record showing
+.Ad dns2.example.com
+as a name server for
+.Ad example.com ,
+an A record showing
+.Ad 192.168.1.1
+as the IP address of
+.Ad dns2.example.com ,
+and an SOA record for
+.Ad example.com .
+.Pp
+.Dl .:example.com::::a.ns.example.com
+.Pp
+creates an NS record showing
+.Ad a.ns.example.com
+as a name server for
+.Ad example.com ,
+and an SOA record for
+.Ad example.com .
+.It & Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp Ns : Ns Ar lo Ns : Ns Ar x Ns : Ns Ar ip Ns Op : Ns Ar ip Ns : Ns ...
+Name server for domain
+.Ar fqdn .
+.Nm tinydns-data
+creates:
+.Pp
+.Bl -enum -compact
+.It
+a NS record showing
+.Ar x Ns Li .ns. Ns Ar fqdn
+as a name server for
+.Ar fqdn
+.It
+an A (IPv4) and/or AAAA (IPv6) record showing
+.Ar ip
+as the IP address of
+.Ar x Ns Li .ns. Ns Ar fqdn .
+.El
+.Pp
+If
+.Ar x
+contains a dot then it is treated specially; see above.
+You may have several name servers for one domain, with a different
+.Ar x
+for each server.
+Normally
+.Sq &
+is used for domains delegated by this server to child servers, while
+.Sq \&.
+is used for domains delegated to this server.
+Examples:
+.Pp
+.Dl &:serious.example.com::::a:192.168.1.1:[fc00::1]
+.Pp
+creates an NS record showing
+.Ad a.ns.serious.example.com
+as a name server for
+.Ad serious.example.com ,
+an A record showing
+.Ad 192.168.1.1
+and a AAAA record showing
+.Ad fc00::1
+as the IP addresses of
+.Ad a.ns.serious.example.com .
+.Pp
+.Dl &:serious.example.com::::ns7.example.com:[fc00::1]
+.Pp
+creates an NS record showing
+.Ad ns7.example.com
+as a name server for
+.Ad serious.example.com ,
+and a AAAA record showing
+.Ad fc00::1
+as the IP address of
+.Ad ns7.example.com .
+.It = Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp Ns : Ns Ar lo Ns : Ns Ar ip Ns Op : Ns Ar ip Ns : Ns ...
+Host
+.Ar fqdn
+with IP address
+.Ar ip .
+.Nm tinydns-data
+creates:
+.Pp
+.Bl -enum -compact
+.It
+an A (IPv4) or AAAA (IPv6) record showing
+.Ar ip
+as the IP address of
+.Ar fqdn
+.It
+a PTR
+.Dq ( pointer )
+record showing
+.Ar fqdn
+as the name of
+.Ad d.c.b.a Ns Li .in-addr.arpa
+if
+.Ar ip
+is
+.Ad a.b.c.d
+or
+.Ad 9.8.7.6.5.4.3.2.1.0.f.e.d.c.b.a Ns Li .ip6.arpa
+if
+.Ar ip
+is
+.Ad a.b.c.d.e.f.0.1.2.3.4.5.6.7.8.9
+.El
+.Pp
+Remember to specify name servers for some suffix of
+.Ar fqdn ;
+otherwise
+.Xr tinydns 8
+and
+.Xr tinydns6 8
+will not respond to queries about
+.Xr fqdn .
+The same comment applies to other records described below.
+Similarly, remember to specify name servers for some suffix of
+.Ad d.c.b.a Ns Li .in-addr.arpa,
+if that domain has been delegated to you.
+Example:
+.Pp
+.Dl =:button.example.com::::192.168.1.1:[fc00::1]
+.Pp
+creates an A record
+.Ad 192.168.1.1
+and a AAAA record
+showing as the IP addresses of
+.Ad button.example.com ,
+and a PTR record showing
+.Ad button.example.com
+as the name of
+.Ad 1.1.168.192.in-addr.arpa
+and
+.Ad 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.c.f.ip6.arpa .
+.It + Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp Ns : Ns Ar lo Ns : Ns Ar ip Ns Op : Ns Ar ip Ns : Ns ...
+Alias
+.Ar fqdn
+with IP address
+.Ar ip .
+This is just like
+.Pp
+.Dl = Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp Ns : Ns Ar lo Ns : Ns Ar ip
+.Pp
+except that
+.Nm tinydns-data
+does not create the PTR record.
+.Xr tinydns 8
+and
+.Xr tinydns6 8
+returns addresses (from
+.Sq +
+or
+.Sq =
+or
+.Sq @
+or
+.Sq \&.
+or
+.Sq &
+lines) in a random order in the answer section.
+If there are more than 8 records, it returns a random set of 8.
+Example:
+.Pp
+.Dl +:button.example.com::::192.168.1.1:192.168.1.2:[fc00::1]
+.Pp
+creates two A records for
+.Ad 192.168.1.1 ,
+.Ad 192.168.1.2
+and a AAAA records for
+.Ad fc00::1
+as other IP addresses for
+.Ad button.example.com .
+.It @ Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp Ns : Ns Ar lo Ns : Ns Ar dist Ns : Ns Ar x Ns : Ns Ar ip Ns Op : Ns Ar ip Ns : Ns ...
+Mail exchanger for
+.Ar fqdn .
+.Nm tinydns-data
+creates:
+.Pp
+.Bl -enum -compact
+.It
+an MX
+.Dq ( mail exchanger )
+record showing
+.Ad x Ns Li .mx. Ns Ar fqdn
+as a mail exchanger for
+.Ar fqdn
+at distance
+.Ar dist
+.It
+an A (IPv4) or AAAA (IPv6) record showing
+.Ar ip
+as the IPv4 or IPv6 address of
+.Ad x Ns Li .mx. Ns Ar fqdn .
+.El
+.Pp
+You may omit
+.Ar dist ;
+the default distance is 0.
+If
+.Ar x
+contains a dot then it is treated specially; see above.
+You may create several MX records for
+.Ar fqdn ,
+with a different
+.Ar x
+for each server.
+Make sure to arrange for the SMTP server on each IPv4 or IPv6 address to accept mail for
+.Ar fqdn .
+Example:
+.Pp
+.Dl @:example.com:::::mail:192.168.1.1:[fc00::1]
+.Pp
+creates an MX record showing
+.Ad mail.example.com
+as a mail exchanger for
+.Ad example.com
+at distance 0,
+an A record showing
+.Ad 192.168.1.1
+and a AAAA record showing
+.Ad fc00::0
+as the IP addresses of
+.Ad mail.example.com .
+.El
+.Sh "UNCOMMON DATA LINES"
+.Bl -tag -width 5em
+.It \- Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp Ns : Ns Ar lo Ns : Ns Ar s
+This type of line is used by programs that automatically edit
+.Em +
+lines in
+.Pa data
+to temporarily exclude addresses of overloaded or dead machines.
+The line is ignored.
+.It ' Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp Ns : Ns Ar lo : Ns Ar s Ns Op : Ns Ar s Ns : Ns ...
+TXT
+.Dq ( text )
+record for
+.Ar fqdn .
+.Nm tinydns-data
+creates a TXT record for
+.Ar fqdn
+containing the string
+.Ar s .
+This record format supports multiple text segments by appending extra colon separated fields (text segments).
+.Pp
+You may use octal
+.Li \ennn
+codes to include arbitrary bytes inside
+.Ar s ;
+for example,
+.Li \e072
+is a colon.
+.Pp
+Warning
+.Nm tinydns-data
+automatically segments strings longer than 255 bytes, this may lead to unexpected results.
+.It ^ Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp Ns : Ns Ar lo Ns : Ns Ar p
+PTR record for
+.Ar fqdn .
+.Nm tinydns-data
+creates a PTR record for
+.Ar fqdn
+pointing to the domain name
+.Ar p .
+.It CNAME Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp Ns : Ns Ar lo Ns : Ns Ar p
+CNAME
+.Dq ( canonical name )
+record for
+.Ar fqdn .
+.Nm tinydns-data
+creates a CNAME record for
+.Ar fqdn
+pointing to the domain name
+.Ar p .
+Don't use
+.Li CNAME: Ns Ar fqdn
+if there are any other records for
+.Ar fqdn
+Don't use
+.Li CNAME: Ns Ar fqdn
+for common aliases; use
+.Li + Ns Ar fqdn
+instead.
+Remember the wise words of Inigo Montoya:
+.Dq You keep using CNAME records. I do not think they mean what you think they mean.
+.It SOA Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp Ns : Ns Ar lo Ns : Ns Ar mname Ns : Ns Ar rname Ns : Ns Ar ser Ns : Ns Ar ref Ns : Ns Ar ret Ns : Ns Ar exp Ns : Ns Ar min
+SOA record for
+.Ar fqdn
+showing
+.Ar mname
+as the primary name server,
+.Ar rname
+(with the first
+.Sq \&.
+converted to
+.Sq @ )
+as the contact address,
+.Ar ser
+as the serial number,
+.Ar ref
+as the refresh time,
+.Ar ret
+as the retry time,
+.Ar exp
+as the expire time, and
+.Ar min
+as the minimum time.
+.Ar ser ,
+.Ar ref ,
+.Ar ret ,
+.Ar exp
+and
+.Ar min
+may be omitted; they default to, respectively, the modification time of the
+.Pa data
+file, 16384 seconds, 2048 seconds, 1048576 seconds, and 3600 seconds.
+.It SRV Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp : Ns Ar lo Ns : Ns Ar weight Ns : Ns Ar priority Ns : Ns Ar port Ns : Ns Ar x Ns : Ns Ar ip
+Service locator (SRV) record for
+.Ar fqdn .
+Standard rules for
+.Ar ip ,
+.Ar x ,
+.Ar ttl ,
+.Ar stamp
+and
+.Ar lo
+apply.
+The
+.Ar port
+field can be a number in the range 0-65535 or a valid port name.
+.Ar weight
+and
+.Ar priority
+range from 0-65535.
+.Ar weight
+and
+.Ar priority
+are optional; they default to zero if not provided.
+.It DNSKEY Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp : Ns Ar lo Ns : Ns Ar flags Ns : Ns Ar algorithm Ns : Ns Ar pubkey
+DNS Public Key (DNSKEY) record for
+.Ar fqdn .
+Standard rules for
+.Ar ttl ,
+.Ar stamp
+and
+.Ar lo
+apply.
+.Pp
+.Ar flags
+is a 16-bit big-endian numerical value.
+Only the ORing of the following values and zero are permitted:
+.Pp
+.Bl -tag -width 3em -offset indent -compact
+.It 1
+Secure Entry Point flag.
+.It 128
+Revoke flag.
+.It 256
+Zone Key flag.
+.El
+.Pp
+.Ar algorithm
+identifies the public key's cryptographic algorithm and determines the format of the
+.Ar pubkey
+field;
+it can only have the following values
+.Pq case insensitive :
+.Pp
+.Bl -tag -width 3em -offset indent -compact
+.It 1, RSA/MD5, RSAMD5
+RSA/MD5 algorithm.
+.It 2, DH
+Diffie-Hellman algorithm.
+.It 3, DSA/SHA-1, DSA
+DSA/SHA-1 algorithm.
+.It 4, ECC
+Elliptic Curve algorithm.
+.It 5, RSA/SHA-1, RSASHA1
+RSA/SHA-1 algorithm.
+.It 6, DSA-NSEC3-SHA1
+DSA-NSEC3-SHA1 algorithm.
+.It 7, RSASHA1-NSEC3-SHA1
+RSASHA1-NSEC3-SHA1 algorithm.
+.It 8, RSA/SHA-256, RSASHA256
+RSA/SHA-256 algorithm.
+.It 10, RSA/SHA-512, RSASHA512
+RSA/SHA-512 algorithm.
+.It 12, ECC-GOST
+GOST R 34.10-2001 algorithm.
+.It 13, ECDSAP256SHA256
+ECDSA Curve P-256 with SHA-256 algorithm.
+.It 14, ECDSAP384SHA384
+ECDSA Curve P-384 with SHA-384 algorithm.
+.It 15, ED25519
+Ed25519 algorithm.
+.It 16, ED448
+Ed448 algorithm.
+.It 252, INDIRECT
+Reserved for Indirect Keys.
+.It 253, PRIVATEDNS
+Private algorithm.
+.It 254, PRIVATEOID
+Private algorithm OID.
+.El
+.Pp
+Refer to RFC4034 for more details.
+.It RRSIG Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp : Ns Ar lo Ns : Ns Ar rrtype Ns : Ns Ar alg Ns : Ns Ar lcount Ns : Ns Ar ottl Ns : Ns Ar ets Ns : Ns Ar its Ns : Ns Ar ktag Ns : Ns Ar signer Ns : Ns Ar sig
+Resource Record Signature (RRSIG) record for
+.Ar fqdn .
+Standard rules for
+.Ar ttl ,
+.Ar stamp
+and
+.Ar lo
+apply.
+.Pp
+The remaining fields are:
+.Bl -tag -width 3em -offset indent
+.It Ar rrtype
+Type Covered field, it identifies the type of the RR set that is covered by this RRSIG record.
+.It Ar alg
+identifies the cryptographic algorithm used to create the signature stored in
+.Ar sig
+field; the accepable values are the same as the algorithm field in DNSKEY RR set.
+.It Ar lcount
+specifies the number of labels in the original RRSIG RR owner name.
+.It Ar ottl
+Original TTL field specifies the TTL of the covered RR set as it appears in the authoritative zone.
+.It Ar ets
+Signature Expiration timestamp.
+.It Ar its
+Inception timestamp.
+.It Ar ktag
+key tag value of the DNSKEY RR that validates this signature.
+.It Ar signer
+Signer's Name field value identifies the owner name of the DNSKEY RR that a validator is supposed to use to validate this signature.
+.It Ar sig
+Signature field contains the cryptographic signature that covers the RRSIG RDATA (excluding the Signature field) and the RRset specified by the RRSIG owner name, RRSIG class, and RRSIG Type Covered field.
+.El
+.Pp
+Refer to RFC4034 for more details.
+.It NSEC Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp : Ns Ar lo Ns : Ns Ar next : Ns Ar type Ns Op : Ns Ar type Ns : Ns ...
+Next Secure (NSEC) record for
+.Ar fqdn .
+Standard rules for
+.Ar ttl ,
+.Ar stamp
+and
+.Ar lo
+apply.
+.Pp
+The Next Domain Name field,
+as designated by
+.Ar next ,
+contains the next owner name (in the canonical ordering of the zone) that has authoritative data or contains a delegation point NS RR set.
+The
+.Ar type
+is a RR type that identifies the RR set types that exist at the NSEC RR's owner name.
+Muliple RR types are separated by a colon,
+white space is not permitted.
+.Nm tinydns-data
+will decode the names and build a Type Bit Maps Field and place it in the RR record.
+.Pp
+Refer to RFC4034 for more details.
+.It DS Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp : Ns Ar lo Ns : Ns Ar ktag : Ns Ar algorithm Ns : Ns Ar dtype Ns : Ns Ar digest
+Delegation Signer (DS) record for
+Next Secure (NSEC) record for
+.Ar fqdn .
+Standard rules for
+.Ar ttl ,
+.Ar stamp
+and
+.Ar lo
+apply.
+.Pp
+The remaining fields are:
+.Bl -tag -width 3em -offset indent
+.It Ar ktag
+Key Tag field lists the key tag of the DNSKEY RR referred to by the DS record.
+.It Ar algorithm
+identifies the cryptographic algorithm used to create the signature stored in
+.Ar digest
+field; the accepable values are the same as the algorithm field in DNSKEY RR set.
+.It Ar dtype
+The Digest Type field identifies the algorithm used to construct the digest.
+Valid values are:
+.Pp
+.Bl -tag -width 3em -offset indent -compact
+.It 1, SHA-1, SHA1
+SHA-1 digest algorithm.
+.It 2, SHA-256, SHA256
+SHA-256 digest algorithm.
+.It 3, GOST
+GOST R 34.11-94 digest algorithm.
+.It 4, SHA-384, SHA384
+SHA-384 digest algorithm.
+.El
+.It Ar digest
+The DS record refers to a DNSKEY RR by including a digest of that DNSKEY RR.
+This field is encoded as hexadecimal.
+.El
+.Pp
+Refer to RFC4034 for more details.
+.It CAA Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp : Ns Ar lo Ns : Ns Ar flags Ns : Ns Ar ptag Ns : Ns Ar pvalue
+Certification Authority Authorization (CAA) record for
+.Ar fqdn .
+Standard rules for
+.Ar ttl ,
+.Ar stamp
+and
+.Ar lo
+apply.
+.Pp
+.Ar flags
+is a 8-bit numerical value.
+.Pp
+.Ar ptag
+(property tag) can only have the following values:
+.Bl -dash -compact -offset 5em
+.It
+.Dq issue
+.It
+.Dq issuewild
+.It
+.Dq iodef
+.El
+.Pp
+.Ar pvalue
+(property value) is the corresponding value of the property tag
+.Ar ptag .
+.Pp
+Refer to RFC6844 for more details.
+.It NAPTR Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp : Ns Ar lo Ns : Ns Ar order Ns : Ns Ar pref Ns : Ns Ar flags Ns : Ns Ar service Ns : Ns Ar regexp Ns : Ns Ar replacement
+Create NAPTR resource record for
+.Ar fqdn .
+The same standard rules for
+.Ar ttl ,
+.Ar stamp
+and
+.Ar lo
+apply.
+.Ar order
+and
+.Ar pref
+(optional) range from 0-65535, and they default to zero if not provided.
+.Ar flags ,
+.Ar service
+and
+.Ar replacement
+are character-strings.
+The
+.Ar replacement
+is a
+.Ar fqdn
+that defaults to
+.Sq \&.
+if not provided.
+.Pp
+.Bd -literal
+NAPTR:somedomain.org::::100:90:s:SIP+D2U::_sip._udp.somedomain.org
+NAPTR:cid.urn.arpa::::100:10:::!^urn:cid:.+@([^\.]+\.)(.*)$!\2!i:
+.Ed
+.It ? Ns : Ns Ar fqdn Ns : Ns Ar ttl Ns : Ns Ar stamp Ns : Ns Ar lo Ns : Ns Ar rrtype Ns : Ns Ar rrdata
+Generic record for
+.Ar fqdn .
+.Nm tinydns-data
+creates a record of type
+.Ar rrtype
+for
+.Ar fqdn
+showing
+.Ar rrdata .
+.Ar rrtype
+must be an integer between 1 and 65535 or a standard RR type mnemonic;
+it must not be 2 (NS), 5 (CNAME), 6 (SOA), 12 (PTR), 15 (MX), 16 (TXT), 33 (SRV), 35 (NAPTR), 43 (DS), 46 (RRSIG), 47 (NSEC), 48 (DNSKEY), 251 (IXFR), 252 (AXFR) or 257 (CAA).
+The proper format of
+.Ar rrdata
+depends on
+.Ar rrtype .
+You may use octal
+.Li \ennn
+codes to include arbitrary bytes inside
+.Ar rrdata .
+.El
+.Sh "WILDCARDS"
+.Xr tinydns 8
+and
+.Xr tinydns6 8
+support wildcards of the form
+.Ad *.fqdn .
+Information for
+.Ad *.fqdn
+is provided for every name ending with
+.Ad .fqdn ,
+.Em except
+names that have their own records and names that are covered by more specific wildcards.
+For example, the lines
+.Pp
+.Dl +:pink.floyd.u.example.com::::1.2.3.4
+.Dl +:*.u.example.com::::1.2.3.200
+.Pp
+have the same effect as
+.Pp
+.Dl +:pink.floyd.u.example.com::::1.2.3.4
+.Dl +:joe.u.example.com::::1.2.3.200
+.Dl +:bill.u.example.com::::1.2.3.200
+.Dl +:floyd.u.example.com::::1.2.3.200
+.Dl +:ishtar.u.example.com::::1.2.3.200
+.Dl +:joe.bob.u.example.com::::1.2.3.200
+.Dl +:sally.floyd.u.example.com::::1.2.3.200
+.Dl +:post.pink.floyd.u.example.com::::1.2.3.200
+.Pp
+and so on.
+As another example, the lines
+.Pp
+.Dl +:pink.floyd.u.example.com::::1.2.3.4
+.Dl @:*.u.example.com:::::mail.example.com
+.Pp
+have the same effect as
+.Pp
+.Dl +:pink.floyd.u.example.com::::1.2.3.4
+.Dl @:joe.u.example.com:::::mail.example.com
+.Dl @:bill.u.example.com:::::mail.example.com
+.Dl @:floyd.u.example.com:::::mail.example.com
+.Dl @:ishtar.u.example.com:::::mail.example.com
+.Dl @:joe.bob.u.example.com:::::mail.example.com
+.Dl @:sally.floyd.u.example.com:::::mail.example.com
+.Dl @:post.pink.floyd.u.example.com:::::mail.example.com
+.Pp
+and so on.
+Notice that the wildcard does not apply to
+.Ad pink.floyd.u.example.com ,
+because that name has its own records.
+.Sh EXAMPLES
+.Dl =:lion.example.com::::1.2.3.4
+.Dl @:example.com:::::1.2.3.4
+.Dl @:3.2.1.in-addr.arpa:::::1.2.3.4
+.Pp
+.Dl =:tiger.example.com::::1.2.3.5
+.Dl .:example.com::::a:1.2.3.5
+.Dl .:3.2.1.in-addr.arpa::::a:1.2.3.5
+.Pp
+.Dl =:bear.example.com::::1.2.3.6
+.Dl .:example.com::::1.2.3.6:b
+.Dl .:3.2.1.in-addr.arpa::::1.2.3.6:b
+.Pp
+.Dl =:cheetah.example.com::::1.2.3.248
+.Dl =:panther.example.com::::1.2.3.249
+.Pp
+Here is the same information in BIND zone-file format with the two zones merged:
+.Pp
+.Dl example.com. 2560 IN SOA a.ns.example.com. hostmaster.example.com. ...
+.Dl example.com. 259200 IN NS a.ns.example.com.
+.Dl example.com. 259200 IN NS b.ns.example.com.
+.Dl example.com. 86400 IN MX mx.example.com.
+.Pp
+.Dl 3.2.1.in-addr.arpa. 2560 IN SOA a.ns.3.2.1.in-addr.arpa. hostmaster.3.2.1.in-addr.arpa. ...
+.Dl 3.2.1.in-addr.arpa. 259200 IN NS a.ns.3.2.1.in-addr.arpa.
+.Dl 3.2.1.in-addr.arpa. 259200 IN NS b.ns.3.2.1.in-addr.arpa.
+.Dl 3.2.1.in-addr.arpa. 86400 IN MX mx.3.2.1.in-addr.arpa.
+.Pp
+.Dl 4.3.2.1.in-addr.arpa. 86400 IN PTR lion.example.com.
+.Dl lion.example.com. 86400 IN A 1.2.3.4
+.Dl mx.example.com. 86400 IN A 1.2.3.4
+.Dl mx.3.2.1.in-addr.arpa. 86400 IN A 1.2.3.4
+.Pp
+.Dl 5.3.2.1.in-addr.arpa. 86400 IN PTR tiger.example.com.
+.Dl tiger.example.com. 86400 IN A 1.2.3.5
+.Dl a.ns.example.com. 259200 IN A 1.2.3.5
+.Dl a.ns.3.2.1.in-addr.arpa. 259200 IN A 1.2.3.5
+.Pp
+.Dl 6.3.2.1.in-addr.arpa. 86400 IN PTR bear.example.com.
+.Dl bear.example.com. 86400 IN A 1.2.3.6
+.Dl b.ns.example.com. 259200 IN A 1.2.3.6
+.Dl b.ns.3.2.1.in-addr.arpa. 259200 IN A 1.2.3.6
+.Pp
+.Dl 248.3.2.1.in-addr.arpa. 86400 IN PTR cheetah.example.com.
+.Dl cheetah.example.com. 86400 IN A 1.2.3.248
+.Pp
+.Dl 249.3.2.1.in-addr.arpa. 86400 IN PTR panther.example.com.
+.Dl panther.example.com. 86400 IN A 1.2.3.249
+.Sh "DESIGN NOTES"
+The
+.Pa data
+format is very easy for programs to edit, and reasonably easy for humans to edit, unlike the traditional zone-file format.
+.Nm tinydns-data
+could support a name wherever an IP address is required; it would look up the name in DNS and use the resulting address.
+This would reliably track changes in offsite IP addresses if the database were rebuilt periodically.
+.Sh SEE ALSO
+.Xr tinydns 8 ,
+.Xr tinydns6 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Pp
+For tutorial information, see the instructions for running a DNS server:
+.Pp
+.Ad http://cr.yp.to/djbdns/run-server.html
+.Pp
+RFC4034 - Resource Records for the DNS Security Extensions.
+.Pp
+RFC6844 - DNS Certification Authority Authorization (CAA) Resource Record.
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

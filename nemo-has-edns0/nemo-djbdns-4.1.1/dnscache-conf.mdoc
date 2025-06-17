@@ -1,0 +1,144 @@
+.Dd @DATE@
+.Dt dnscache-conf 8
+.Os @VERSION@
+.Sh NAME
+.Nm dnscache-conf
+.Nd sets up a IPv4 DNS cache service
+.Sh SYNOPSIS
+.Nm dnscache-conf
+.Ar acct
+.Ar logacct
+.Ar D
+.Op Ar ip
+.Sh DESCRIPTION
+.B dnscache-conf
+creates a service directory
+.I D
+that runs
+.Xr dnscache 8 .
+The name
+.Ar D
+must start with a slash and must not contain any special characters.
+Normally
+.Ar D
+is
+.Pa /etc/dnscache .
+.Pp
+You can run the service under
+.Xr svscan 8
+by creating a symbolic link in the
+.Xr svscan 8
+directory:
+.Pp
+.Nm ln Fl s Ar D Ns Ar /service
+.Pp
+The service will start within five seconds, and will be restarted upon reboot.
+You can use
+.Xr svc 8
+to control the service.
+.Pp
+.Nm dnscache-conf
+arranges for
+.Xr dnscache 8
+to chroot to
+.Ar D Ns Pa /root
+and to run under the uid and gid of
+.Ar acct .
+The name
+.Ar acct
+must not contain any special characters.
+.Pp
+.Nm dnscache-conf
+arranges for
+.Xr dnscache 8
+to listen for UDP packets and TCP connections on port 53 of
+.Ar ip .
+.Pp
+.Ar ip
+is optional;
+if it is not supplied,
+.Nm dnscache-conf
+arranges for
+.Xr dnscache 8
+to listen on 127.0.0.1.
+.Pp
+.Nm dnscache-conf
+creates
+.Ar D Ns Pa /root/ip/127.0.0.1
+so that
+.Xr dnscache 8
+will accept queries from 127.0.0.1.
+.Pp
+.Nm dnscache-conf
+puts 128 bytes of not-particularly-secret data into
+.Ar D Ns Pa /seed
+and arranges for
+.Xr dnscache 8
+to pass
+.Ar D Ns Pa /seed
+to
+.Xr dns_random_init 3 .
+If your system has a good source of random data, you can replace
+.Ar D Ns Pa /seed
+with 128 bytes of data from that source.
+.Pp
+.Nm dnscache-conf
+creates an automatically rotated log directory in
+.Ar D Ns Pa /log/main.
+The logs are owned by
+.Ar logacct .
+The corresponding
+.Xr multilog 8
+processes run under the uid and gid of
+.Ar logacct .
+The name
+.Ar logacct
+must not contain any special characters.
+.Sh IMPLEMENTATION
+.Nm dnscache-conf
+creates a script
+.Pa makeroot
+in the directory
+.Ar D ,
+that can be run regularly to update the
+.Pa root/servers/@
+file.
+This script should be run before starting
+.Xr dnscache 8
+for the first time.
+.Sh EXAMPLES
+For tutorial information, see the instructions for:
+.Bl -tag
+.It workstations
+.Ad http://cr.yp.to/djbdns/run-cache.html
+.It home computers
+.Ad http://cr.yp.to/djbdns/run-cache-home.html
+.It external caches
+.Ar http://cr.yp.to/djbdns/run-cache-x.html
+.It upgrading from BIND
+.Ad http://cr.yp.to/djbdns/run-cache-bind-1.html
+.El
+.Sh SEE ALSO
+.Xr dnscache6-conf 8 ,
+.Xr dnscache 8 ,
+.Xr dnscache6 8 ,
+.Xr svscan 8 ,
+.Xr svc 8 ,
+.Xr multilog 8 ,
+.Xr axfrdns-conf 8 ,
+.Xr rbldns-conf 8 ,
+.Xr tinydns-conf 8 ,
+.Xr walldns-conf 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

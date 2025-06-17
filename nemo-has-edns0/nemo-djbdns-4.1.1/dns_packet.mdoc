@@ -1,0 +1,81 @@
+.Dd @DATE@
+.Dt dns_packet 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns_packet
+.Nd The dns_packet library interface
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft unsigned int
+.Fn dns_packet_copy "const char *buf" "unsigned int len" "unsigned int pos" "char *out" "unsigned int outlen"
+.Ft unsigned int
+.Fn dns_packet_getname "const char *buf" "unsigned int len" "unsigned int pos" "dns_domain *dn"
+.Ft unsigned int
+.Fn dns_packet_skipname "const char *buf" "unsigned int len" "unsigned int pos"
+.Sh DESCRIPTION
+.Fn dns_packet_copy
+reads
+.Fa outlen
+bytes from position
+.Fa pos
+of a DNS packet stored at
+.Fa buf ,
+copies the bytes into
+.Fa out ,
+and returns
+.Fa pos Ns No + Ns Fa outlen .
+However, if reading the bytes would require reading past the first
+.Fa len
+bytes of the packet,
+.Fn dns_packet_copy
+returns 0, setting
+.Va errno
+appropriately.
+.Pp
+.Fn dns_packet_getname
+reads a compressed domain name from position
+.Fa pos
+of a DNS packet stored at
+.Fa buf ,
+copies the name into
+.Fa dn ,
+and returns the position in the packet immediately after the name.
+If the name is misformatted, or if reading the name would require reading past the first len bytes of the packet,
+or if there is not enough memory for
+.Fa dn ,
+.Fn dns_packet_getname
+returns 0, setting
+.Va errno
+appropriately, and leaves
+.Fa dn
+alone.
+.Pp
+.Fn dns_packet_skipname
+is like
+.Fn dns_packet_getname
+but discards the resulting domain name.
+It does not allocate memory.
+Beware that, even if
+.Fn dns_packet_skipname
+returns nonzero, a future
+.Fn dns_packet_getname
+from the same position may fail: it may run out of memory, or encounter a format error not detected by
+.Fn dns_packet_skipname .
+.Sh SEE ALSO
+.Xr djbdns 3 ,
+.Xr dns_domain 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

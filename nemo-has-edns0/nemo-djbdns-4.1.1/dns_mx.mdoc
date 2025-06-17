@@ -1,0 +1,68 @@
+.Dd @DATE@
+.Dt dns_mx 3
+.Os @VERSION@
+.Sh NAME
+.Nm dns4_mx , dns6_mx
+.Nd MX records for a domain
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Ft int
+.Fn dns4_mx "mxname_vector *out" "const stralloc *fqdn"
+.Ft int
+.Fn dns6_mx "mxname_vector *out" "const stralloc *fqdn"
+.Sh DESCRIPTION
+.Fn dns4_mx
+looks up MX records, via IPv4 network connection, for the fully-qualified domain name in
+.Fa fqdn .
+It puts the MX records into
+.Fa out
+and returns 0.
+Each MX record is a struct that contains the MX distance (unsigned int) and a dot-encoded domain name in a
+.Xr stralloc 3
+structure.
+If the domain does not exist in DNS, or has no MX records,
+.Fa out
+will be empty.
+.Pp
+.Fn dns6_mx
+looks up MX records, via IPv6 network connection, for the fully-qualified domain name in
+.Fa fqdn .
+It puts the MX records into
+.Fa out
+and returns 0.
+Each MX record is a struct that contains the MX distance (unsigned int) and a dot-encoded domain name in a
+.Xr stralloc 3
+structure.
+If the domain does not exist in DNS, or has no MX records,
+.Fa out
+will be empty.
+.Pp
+If
+.Fn dns4_mx
+or
+.Fn dns6_mx
+have trouble with the DNS lookup or runs out of memory, it returns -1, setting
+.Va errno
+appropriately.
+It may or may not change
+.Fa out .
+.Sh SEE ALSO
+.Xr djbdns 3 ,
+.Xr dns_mx_packet 3 ,
+.Xr dns_ip4 3
+.Xr dns_ip6 3
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

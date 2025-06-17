@@ -1,0 +1,59 @@
+.Dd @DATE@
+.Dt dnsip6q 1
+.Os @VERSION@
+.Sh NAME
+.Nm dnsip6q
+.Nd dns lookup tool
+.Sh SYNOPSIS
+.Nm dnsip6q
+.Op Fl 46
+.Op Ar udn ...
+.Sh DESCRIPv6TION
+.Nm dnsip6q
+feeds the name
+.Ar udn
+through
+.Xr qualification 5 .
+It prints the fully qualified domain name and IPv6 addresses on a single line.
+If the fully qualified domain name does not exist,
+.Nm dnsip6q
+prints no addresses.
+You can list several
+.Ar udn Ns Li s;
+.Nm dnsip6q
+prints each result on a separate line.
+.Sh "OPTIONS"
+.Bl -tag
+.It Fl 4
+(Default). Connect to the network using IPv4.
+.It Fl 6
+Connect to the network using IPv6.
+.El
+.Sh DIAGNOSTICS
+Normally
+.Nm dnsip6q
+exits 0.
+If
+.Nm dnsip6q
+encounters a temporary problem that prevents it from determining the list of IPv6 addresses, it prints an error message and exits 111.
+.Sh SEE ALSO
+.Xr qualification 5 ,
+.Xr dnsip 1 ,
+.Xr dnsip6 1 ,
+.Xr dnsname 1 ,
+.Xr dnsmx 1 ,
+.Xr dnstxt 1 ,
+.Xr dnsqr 1 ,
+.Xr dnsq 1 ,
+.Xr dnstrace 1
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

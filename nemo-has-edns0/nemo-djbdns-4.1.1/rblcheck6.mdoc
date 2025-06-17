@@ -1,0 +1,77 @@
+.Dd @DATE@
+.Dt rblcheck6 1
+.Os @VERSION@
+.Sh NAME
+.Nm rblcheck6
+.Nd query IP-address-listing DNS servers, via IPv6 connection
+.Sh SYNOPSIS
+.Nm rblcheck6
+.Op Fl 1qQt
+.Fl s Ar rblservice
+.Ar ip
+.Sh DESCRIPTION
+.Nm rblcheck6
+queries a list of IP-address-listing DNS servers.
+It provides responses showing whether the IPv6 address
+.Ar ip
+is listed on an IP-address-listing DNS server, such as RBL or DUL.
+.Pp
+At lease one
+.Ar rblservice
+must be specified.
+.Sh "OPTIONS"
+.Bl -tag
+.It Fl 1
+Stop querying listed
+.Ar rblservice Ns s
+after the first listing encounter.
+.It Fl q
+Operate in quite mode. Only error messages will be printed to
+.Ar stderr .
+.It Fl Q
+(Default). Do not operate in quite mode. Results will be printed to
+.Va stdout .
+Error messages will be printed to
+.Ar stderr .
+.It Fl s Ar rblservice
+Add the
+.Ar rblservice
+to the list of services to query.
+.It Fl t
+Instead of printing the returned IPv4 address from the
+.Ar rblservice ,
+print the text (TXT RR) returned by the
+.Ar rblservice .
+.El
+.Sh "ERROR CODES"
+.Nm rblcheck6
+will return an error code of:
+.Bl -tag
+.It 0
+The
+.Ar ip
+was not found in the IP-address-listing DNS server.
+.It 1
+The
+.Ar ip
+was found in the IP-address-listing DNS server.
+.It 100
+Usage error. Diagnostic will be printed to
+.Va stderr .
+.It 111
+Fatal error. Diagnostic will be printed to
+.Va stderr .
+.El
+.Sh SEE ALSO
+.Xr rblcheck 1 ,
+.Xr rbldns 8 ,
+.Xr rbldns-conf 8 ,
+.Xr rbldns-data 8
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .

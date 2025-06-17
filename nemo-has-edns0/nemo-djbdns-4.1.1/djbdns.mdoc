@@ -1,0 +1,139 @@
+.Dd @DATE@
+.Dt djbdns 3
+.Os @VERSION@
+.Sh NAME
+.Nm djbdns
+.Nd a new client library designed to replace the old BIND res_*/dn_* library
+.Sh LIBRARY
+Nemo DJBDNS Library (libdjbdns, -ldjbdns)
+.Sh SYNOPSIS
+.In nemo/dns.h
+.Sh DESCRIPTION
+.Ss "High-level lookups"
+The dns library provides several easy-to-use DNS lookup routines:
+.Xr dns_ip4 3,
+.Xr dns_ip4_qualify 3,
+.Xr dns_ip6 3,
+.Xr dns_name4 3,
+.Xr dns_mx 3 ,
+.Xr dns_ns 3 ,
+.Xr dns_soa 3 ,
+and
+.Xr dns_txt 3 .
+.Pp
+.Xr dns_ip4_qualify 3
+supports the traditional configuration mechanisms for hostname rewriting:
+.Ev $LOCALDOMAIN ,
+.Pa /etc/resolv.conf ,
+and
+.Fn gethostname .
+It also supports a powerful new user-controlled rewriting mechanism.
+.Pp
+The functions that read
+.Pa /etc/resolv.conf
+automatically reread it every ten minutes, so system administrators don't have to kill long-running programs.
+.Ss "Low-level lookups"
+The
+.Xr dns_domain 3
+and
+.Xr dns_packet 3
+functions make it easy to safely parse DNS packets.
+The
+.Xr dns_transmit4 3
+and
+.Xr dns_transmi6 3
+functions send DNS queries of arbitrary types to arbitrary servers.
+These are the functions used in the
+.Xr dnscache 8
+program.
+.Ss "Internationalization"
+The dns library, unlike the BIND client library, has no problems looking up addresses for non-ASCII domain names.
+.Ss "Asynchronous lookups"
+UNIX offers three levels of support for parallel DNS lookups:
+.Bl -enum
+.It
+Multiple processes.
+Any client library can be used here.
+.It
+Multiple threads.
+The client library must be threadable.
+(This means that, in functions that wait for responses, global variables are protected with mutexes, and are not used while the function is waiting.
+Other functions can be mutexed by the caller.)
+Thread creation is generally faster than process creation.
+.It
+Event handling with poll or select.
+The client library must be asynchronous.
+(This means that none of the functions wait for responses.
+Event information is passed to the caller.)
+Event handling is generally the fastest solution, but puts the most stringent requirements on the client library.
+Asynchronous libraries are automatically threadable.
+.El
+.Pp
+The
+.Xr dns_transmit4 3
+functions are asynchronous.
+The high-level features of
+.Xr dns_ip4 3 ,
+.Xr dns_ip6 3 ,
+.Xr dns_name4 3 ,
+.Xr dns_name6 3 ,
+etc. are available as asynchronous functions:
+.Xr dns_ip4_packet 3 ,
+.Xr dns_ip6_packet 3 ,
+.Xr dns_name_packet 3 ,
+etc.
+There is a sample
+.Xr dnsfilter 1
+program that shows how to do many PTR lookups in parallel.
+.Ss "Memory use"
+The old
+.Fn res_query
+function places its packets in a user-supplied buffer.
+The buffer is inevitably much too large for typical results, wasting memory, and too small for large results, making lookups fail on occasion.
+.Pp
+In contrast, the
+.Em dns
+functions dynamically allocate the right amount of space for incoming DNS packets and for final results.
+.Sh ENVIRONMENT
+.Bl -tag
+.It DNSCACHEIP
+Override the IP address listed in the
+.Pa /etc/resolv.conf
+file.
+.El
+.Sh "IP VERSION 6"
+Many of the
+.Em dns
+functions now support IPv4 and IPV6 connectivity.
+See the respective manual pages for the IPv4/IPv6 API.
+.Sh SEE ALSO
+.Xr dns_domain 3 ,
+.Xr dns_ip4 3 ,
+.Xr dns_ip4_qualify 3 ,
+.Xr dns_ip6 3 ,
+.Xr dns_mx 3 ,
+.Xr dns_ns 3 ,
+.Xr dns_name4 3 ,
+.Xr dns_name6 3 ,
+.Xr dns_soa 3 ,
+.Xr dns_spf 3 ,
+.Xr dns_txt 3 ,
+.Xr dns_transmit4 3 ,
+.Xr dns_transmit6 3 ,
+.Xr dns_name_packet 3 ,
+.Xr dns_txt_packet 3 ,
+.Xr dnsfilter 1 ,
+.Xr qualification 5
+.Pp
+.Ad http://www.nemostar.org/djbdns/
+.Pp
+.Ad http://cr.yp.to/djbdns.html
+.Sh AUTHORS
+.An -nosplit
+The original software and the modifications have been placed in the public domain.
+.Pp
+Original development of software by
+.An "Daniel J. Bernstein" .
+.Pp
+Software and documentation modifications by
+.An "Stephen A. Welker" .
