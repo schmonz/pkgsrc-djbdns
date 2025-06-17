@@ -1,0 +1,664 @@
+--- src.old/FILES
++++ src/FILES
+@@ -242,3 +242,6 @@
+ warn-shsgr
+ buffer_read.c
+ buffer_write.c
++ip6_scan.c
++fmtscan_num.c
++iplen.c
+--- src.old/Makefile
++++ src/Makefile
+@@ -52,10 +52,10 @@
+ 
+ axfrdns: \
+ load axfrdns.o iopause.o droproot.o tdlookup.o response.o qlog.o \
+-prot.o timeoutread.o timeoutwrite.o dns.a libtai.a alloc.a env.a \
++prot.o timeoutread.o timeoutwrite.o iplen.o dns.a libtai.a alloc.a env.a \
+ cdb.a buffer.a unix.a byte.a
+ 	./load axfrdns iopause.o droproot.o tdlookup.o response.o \
+-	qlog.o prot.o timeoutread.o timeoutwrite.o dns.a libtai.a \
++	qlog.o prot.o timeoutread.o timeoutwrite.o iplen.o dns.a libtai.a \
+ 	alloc.a env.a cdb.a buffer.a unix.a byte.a 
+ 
+ axfrdns-conf: \
+@@ -73,7 +73,7 @@
+ tai.h uint64.h buffer.h timeoutread.h timeoutwrite.h open.h seek.h \
+ cdb.h uint32.h stralloc.h gen_alloc.h strerr.h str.h byte.h case.h \
+ dns.h stralloc.h iopause.h taia.h tai.h taia.h scan.h qlog.h uint16.h \
+-response.h uint32.h
++response.h uint32.h iplen.h
+ 	./compile axfrdns.c
+ 
+ buffer.a: \
+@@ -120,12 +120,13 @@
+ case_diffb.o case_diffs.o case_lowerb.o fmt_ulong.o ip4_fmt.o \
+ ip4_scan.o scan_ulong.o str_chr.o str_diff.o str_len.o str_rchr.o \
+ str_start.o uint16_pack.o uint16_unpack.o uint32_pack.o \
+-uint32_unpack.o
++uint32_unpack.o ip6_scan.o fmtscan_num.o
+ 	./makelib byte.a byte_chr.o byte_copy.o byte_cr.o \
+ 	byte_diff.o byte_zero.o case_diffb.o case_diffs.o \
+ 	case_lowerb.o fmt_ulong.o ip4_fmt.o ip4_scan.o scan_ulong.o \
+ 	str_chr.o str_diff.o str_len.o str_rchr.o str_start.o \
+-	uint16_pack.o uint16_unpack.o uint32_pack.o uint32_unpack.o
++	uint16_pack.o uint16_unpack.o uint32_pack.o uint32_unpack.o \
++	ip6_scan.o fmtscan_num.o
+ 
+ byte_chr.o: \
+ compile byte_chr.c byte.h
+@@ -484,6 +485,10 @@
+ compile fmt_ulong.c fmt.h
+ 	./compile fmt_ulong.c
+ 
++fmtscan_num.o: \
++compile fmtscan_num.c ip4.h
++	./compile fmtscan_num.c
++
+ generic-conf.o: \
+ compile generic-conf.c strerr.h buffer.h open.h generic-conf.h \
+ buffer.h
+@@ -550,6 +555,14 @@
+ compile ip4_scan.c scan.h ip4.h
+ 	./compile ip4_scan.c
+ 
++ip6_scan.o: \
++compile ip6_scan.c ip4.h
++	./compile ip6_scan.c
++
++iplen.o: \
++compile iplen.c iplen.h
++	./compile iplen.c
++
+ it: \
+ prog install instcheck
+ 
+@@ -626,10 +639,10 @@
+ 	./compile parsetype.c
+ 
+ pickdns: \
+-load pickdns.o server.o response.o droproot.o qlog.o prot.o dns.a \
++load pickdns.o server.o response.o droproot.o qlog.o prot.o iplen.o dns.a \
+ env.a libtai.a cdb.a alloc.a buffer.a unix.a byte.a socket.lib
+ 	./load pickdns server.o response.o droproot.o qlog.o \
+-	prot.o dns.a env.a libtai.a cdb.a alloc.a buffer.a unix.a \
++	prot.o iplen.o dns.a env.a libtai.a cdb.a alloc.a buffer.a unix.a \
+ 	byte.a  `cat socket.lib`
+ 
+ pickdns-conf: \
+@@ -704,10 +717,10 @@
+ 	./compile random-ip.c
+ 
+ rbldns: \
+-load rbldns.o server.o response.o dd.o droproot.o qlog.o prot.o dns.a \
++load rbldns.o server.o response.o dd.o droproot.o qlog.o prot.o iplen.o dns.a \
+ env.a libtai.a cdb.a alloc.a buffer.a unix.a byte.a socket.lib
+ 	./load rbldns server.o response.o dd.o droproot.o qlog.o \
+-	prot.o dns.a env.a libtai.a cdb.a alloc.a buffer.a unix.a \
++	prot.o iplen.o dns.a env.a libtai.a cdb.a alloc.a buffer.a unix.a \
+ 	byte.a  `cat socket.lib`
+ 
+ rbldns-conf: \
+@@ -774,7 +787,7 @@
+ compile server.c byte.h case.h env.h buffer.h strerr.h ip4.h uint16.h \
+ ndelay.h socket.h uint16.h droproot.h qlog.h uint16.h response.h \
+ uint32.h dns.h stralloc.h gen_alloc.h iopause.h taia.h tai.h uint64.h \
+-taia.h
++taia.h iplen.h
+ 	./compile server.c
+ 
+ setup: \
+@@ -965,7 +978,7 @@
+ tdlookup.o: \
+ compile tdlookup.c uint16.h open.h tai.h uint64.h cdb.h uint32.h \
+ byte.h case.h dns.h stralloc.h gen_alloc.h iopause.h taia.h tai.h \
+-taia.h seek.h response.h uint32.h
++taia.h seek.h response.h uint32.h iplen.h
+ 	./compile tdlookup.c
+ 
+ timeoutread.o: \
+@@ -980,10 +993,10 @@
+ 
+ tinydns: \
+ load tinydns.o server.o droproot.o tdlookup.o response.o qlog.o \
+-prot.o dns.a libtai.a env.a cdb.a alloc.a buffer.a unix.a byte.a \
++prot.o iplen.o dns.a libtai.a env.a cdb.a alloc.a buffer.a unix.a byte.a \
+ socket.lib
+ 	./load tinydns server.o droproot.o tdlookup.o response.o \
+-	qlog.o prot.o dns.a libtai.a env.a cdb.a alloc.a buffer.a \
++	qlog.o prot.o iplen.o dns.a libtai.a env.a cdb.a alloc.a buffer.a \
+ 	unix.a byte.a  `cat socket.lib`
+ 
+ tinydns-conf: \
+@@ -1020,16 +1033,16 @@
+ 
+ tinydns-get: \
+ load tinydns-get.o tdlookup.o response.o printpacket.o printrecord.o \
+-parsetype.o dns.a libtai.a cdb.a buffer.a alloc.a unix.a byte.a
++parsetype.o iplen.o dns.a libtai.a cdb.a buffer.a alloc.a unix.a byte.a
+ 	./load tinydns-get tdlookup.o response.o printpacket.o \
+-	printrecord.o parsetype.o dns.a libtai.a cdb.a buffer.a \
++	printrecord.o parsetype.o iplen.o dns.a libtai.a cdb.a buffer.a \
+ 	alloc.a unix.a byte.a 
+ 
+ tinydns-get.o: \
+ compile tinydns-get.c str.h byte.h scan.h exit.h stralloc.h \
+ gen_alloc.h buffer.h strerr.h uint16.h response.h uint32.h case.h \
+ printpacket.h stralloc.h parsetype.h ip4.h dns.h stralloc.h iopause.h \
+-taia.h tai.h uint64.h taia.h
++taia.h tai.h uint64.h taia.h iplen.h
+ 	./compile tinydns-get.c
+ 
+ tinydns.o: \
+@@ -1084,10 +1097,10 @@
+ 	./compile utime.c
+ 
+ walldns: \
+-load walldns.o server.o response.o droproot.o qlog.o prot.o dd.o \
++load walldns.o server.o response.o droproot.o qlog.o prot.o dd.o iplen.o \
+ dns.a env.a cdb.a alloc.a buffer.a unix.a byte.a socket.lib
+ 	./load walldns server.o response.o droproot.o qlog.o \
+-	prot.o dd.o dns.a env.a cdb.a alloc.a buffer.a unix.a \
++	prot.o dd.o iplen.o dns.a env.a cdb.a alloc.a buffer.a unix.a \
+ 	byte.a  `cat socket.lib`
+ 
+ walldns-conf: \
+--- src.old/TARGETS
++++ src/TARGETS
+@@ -214,3 +214,6 @@
+ it
+ setup
+ check
++ip6_scan.o
++fmtscan_num.o
++iplen.o
+--- src.old/axfrdns.c
++++ src/axfrdns.c
+@@ -21,6 +21,7 @@
+ #include "scan.h"
+ #include "qlog.h"
+ #include "response.h"
++#include "iplen.h"
+ 
+ extern int respond(char *,char *,char *);
+ 
+@@ -123,7 +124,7 @@
+   }
+ }
+ 
+-char ip[4];
++char ip[16];
+ unsigned long port;
+ char clientloc[2];
+ 
+@@ -228,6 +229,7 @@
+   uint32 eod;
+   uint32 pos;
+   int r;
++  unsigned int i = 3 + iplen ;
+ 
+   axfrcheck(zone);
+ 
+@@ -236,16 +238,16 @@
+ 
+   byte_zero(clientloc,2);
+   key[0] = 0;
+-  key[1] = '%';
+-  byte_copy(key + 2,4,ip);
+-  r = cdb_find(&c,key,6);
+-  if (!r) r = cdb_find(&c,key,5);
+-  if (!r) r = cdb_find(&c,key,4);
+-  if (!r) r = cdb_find(&c,key,3);
+-  if (!r) r = cdb_find(&c,key,2);
+-  if (r == -1) die_cdbread();
++  key[1] = iplen == 16 ? '$' : '%';
++  byte_copy(key + 2,iplen,ip);
++  while (i--)
++  {
++    r = cdb_find(&c,key,2 + i);
++    if (r) break ;
++  }
++  if (r == -1) die_cdbread() ;
+   if (r && (cdb_datalen(&c) == 2))
+-    if (cdb_read(&c,clientloc,2,cdb_datapos(&c)) == -1) die_cdbread();
++    if (cdb_read(&c,clientloc,2,cdb_datapos(&c)) == -1) die_cdbread() ;
+ 
+   cdb_findstart(&c);
+   for (;;) {
+@@ -327,11 +329,13 @@
+ 
+   axfr = env_get("AXFR");
+   
++  byte_zero(ip,16);
+   x = env_get("TCPREMOTEIP");
+-  if (x && ip4_scan(x,ip))
+-    ;
+-  else
+-    byte_zero(ip,4);
++  if (x)
++  {
++    if (ip6_scan(x, ip)) iplen = 16 ;
++    else if (ip4_scan(x, ip)) iplen = 4 ;
++  }
+ 
+   x = env_get("TCPREMOTEPORT");
+   if (!x) x = "0";
+--- /dev/null
++++ src/fmtscan_num.c
+@@ -0,0 +1,14 @@
++#include "ip4.h"
++
++unsigned char fmtscan_num (unsigned char c, unsigned char n)
++{
++  return
++    ((c < '0') || (n > 36)) ? n :
++    (n <= 10) ? (c - '0' <= n) ? c - '0' : n :
++    (c - '0' <= 9) ? c - '0' :
++    (c < 'A') ? n :
++    (c - 'A' < n - 10) ? c - 'A' + 10 :
++    (c < 'a') ? n :
++    (c - 'a' < n - 10) ? c - 'a' + 10 :
++    n ;
++}
+--- src.old/ip4.h
++++ src/ip4.h
+@@ -6,4 +6,7 @@
+ 
+ #define IP4_FMT 20
+ 
++extern unsigned char fmtscan_num (unsigned char, unsigned char) ;
++extern unsigned int ip6_scan (const char *, char *) ;
++
+ #endif
+--- /dev/null
++++ src/ip6_scan.c
+@@ -0,0 +1,35 @@
++#include <errno.h>
++
++#include "uint16.h"
++#include "ip4.h"
++
++unsigned int ip6_scan (char const *s, char *ip6)
++{
++  static const unsigned char class[256] = "2222222222222222222222222222222222222222222222220000000000122222200000022222222222222222222222222000000222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222" ;
++  static const unsigned char table[5][3] = { "\024#\005", "\024\"\005", "\024\005\006", "\005\002\005", "\024\t\016" } ;
++  uint16 tmp[8] = { 0, 0, 0, 0, 0, 0, 0, 0 } ;
++  unsigned int i = 0 ;
++  unsigned int pos = 8, j = 0, state = 0 ;
++
++  while (state < 5)
++  {
++    unsigned char c = table[state][class[(unsigned char)s[i]] - '0'] ;
++    state = c & 7 ;
++    if (c & 0x20) { if (pos < 8) state = 5 ; else pos = j ; }
++    if (c & 0x10)
++    {
++     if (tmp[j] & 0xf000) state = 5 ;
++     else tmp[j] = (tmp[j] << 4) + fmtscan_num(s[i], 16) ;
++    }
++    if (c & 0x08) if ((++j > 7) && (state < 5)) state = 5 ;
++    i++ ;
++  }
++
++  if (((pos < 8) && (j > 6)) || ((pos == 8) && (j < 8))) state = 5 ;
++  if (state == 5) return (errno = EINVAL, 0) ; 
++  for (state = j ; state > pos ; state--) tmp[state - j + 7] = tmp[state - 1] ;
++  for (; state < pos + 8 - j ; state++) tmp[state] = 0 ;
++
++  for (j = 0 ; j < 8 ; j++) uint16_pack_big(ip6 + (j<<1), tmp[j]) ;
++  return i - 1 ;
++}
+--- /dev/null
++++ src/iplen.c
+@@ -0,0 +1,3 @@
++#include "iplen.h"
++
++unsigned int iplen = 0 ;
+--- /dev/null
++++ src/iplen.h
+@@ -0,0 +1,6 @@
++#ifndef IPLEN_H
++#define IPLEN_H
++
++extern unsigned int iplen ;
++
++#endif
+--- src.old/qlog.c
++++ src/qlog.c
+@@ -1,5 +1,6 @@
+ #include "buffer.h"
+ #include "qlog.h"
++#include "iplen.h"
+ 
+ static void put(char c)
+ {
+@@ -20,15 +21,12 @@
+   put('0' + (c & 7));
+ }
+ 
+-void qlog(const char ip[4],uint16 port,const char id[2],const char *q,const char qtype[2],const char *result)
++void qlog(const char *ip,uint16 port,const char id[2],const char *q,const char qtype[2],const char *result)
+ {
+   char ch;
+   char ch2;
+ 
+-  hex(ip[0]);
+-  hex(ip[1]);
+-  hex(ip[2]);
+-  hex(ip[3]);
++  for (unsigned int i = 0 ; i < iplen ; i++) hex(ip[i]) ;
+   put(':');
+   hex(port >> 8);
+   hex(port & 255);
+--- src.old/server.c
++++ src/server.c
+@@ -11,13 +11,14 @@
+ #include "qlog.h"
+ #include "response.h"
+ #include "dns.h"
++#include "iplen.h"
+ 
+ extern char *fatal;
+ extern char *starting;
+ extern int respond(char *,char *,char *);
+ extern void initialize(void);
+ 
+-static char ip[4];
++static char ip[16];
+ static uint16 port;
+ 
+ static char buf[513];
+@@ -87,13 +88,19 @@
+   x = env_get("IP");
+   if (!x)
+     strerr_die2x(111,fatal,"$IP not set");
+-  if (!ip4_scan(x,ip))
+-    strerr_die3x(111,fatal,"unable to parse IP address ",x);
++  if (ip6_scan(x,ip)) iplen = 16 ;
++  else if (ip4_scan(x,ip)) iplen = 4 ;
++  else strerr_die3x(111,fatal,"unable to parse IP address ",x);
+ 
+-  udp53 = socket_udp();
++  udp53 = iplen == 16 ? socket_udp6() : socket_udp();
+   if (udp53 == -1)
+     strerr_die2sys(111,fatal,"unable to create UDP socket: ");
+-  if (socket_bind4_reuse(udp53,ip,53) == -1)
++  if (iplen == 16)
++  {
++    if (socket_bind6_reuse(udp53,ip,53) == -1)
++      strerr_die2sys(111,fatal,"unable to bind UDP socket: ");
++  }
++  else if (socket_bind4_reuse(udp53,ip,53) == -1)
+     strerr_die2sys(111,fatal,"unable to bind UDP socket: ");
+ 
+   droproot(fatal);
+@@ -108,11 +115,17 @@
+   close(1);
+ 
+   for (;;) {
+-    len = socket_recv4(udp53,buf,sizeof buf,ip,&port);
++    if (iplen == 16)
++      len = socket_recv6(udp53,buf,sizeof buf,ip,&port);
++    else
++      len = socket_recv4(udp53,buf,sizeof buf,ip,&port);
+     if (len < 0) continue;
+     if (!doit()) continue;
+     if (response_len > 512) response_tc();
+-    socket_send4(udp53,response,response_len,ip,port);
++    if (iplen == 16)
++      socket_send6(udp53,response,response_len,ip,port);
++    else
++      socket_send4(udp53,response,response_len,ip,port);
+     /* may block for buffer space; if it fails, too bad */
+   }
+ }
+--- src.old/socket.h
++++ src/socket.h
+@@ -5,6 +5,7 @@
+ 
+ extern int socket_tcp(void);
+ extern int socket_udp(void);
++extern int socket_udp6 (void) ;
+ 
+ extern int socket_connect4(int,const char *,uint16);
+ extern int socket_connected(int);
+@@ -16,6 +17,11 @@
+ extern int socket_send4(int,const char *,int,const char *,uint16);
+ extern int socket_local4(int,char *,uint16 *);
+ extern int socket_remote4(int,char *,uint16 *);
++
++extern int socket_bind6(int,char const *,uint16);
++extern int socket_bind6_reuse(int,char const *,uint16);
++extern int socket_recv6(int,char *,int,char *,uint16 *);
++extern int socket_send6(int,const char *,int,const char *,uint16);
+ 
+ extern void socket_tryreservein(int,int);
+ 
+--- src.old/socket_bind.c
++++ src/socket_bind.c
+@@ -1,5 +1,6 @@
+ #include <sys/types.h>
+ #include <sys/param.h>
++#include <string.h>
+ #include <sys/socket.h>
+ #include <netinet/in.h>
+ #include "byte.h"
+@@ -30,4 +31,21 @@
+     if (setsockopt(s,SOL_SOCKET,SO_RCVBUF,&size,sizeof size) == 0) return;
+     size -= (size >> 5);
+   }
++}
++
++int socket_bind6 (int s, char const *ip6, uint16 port)
++{
++  struct sockaddr_in6 sa ;
++  memset(&sa, 0, sizeof sa) ;
++  sa.sin6_family = AF_INET6 ;
++  uint16_pack_big((char *)&sa.sin6_port, port) ;
++  memcpy(sa.sin6_addr.s6_addr, ip6, 16) ;
++  return bind(s, (struct sockaddr *)&sa, sizeof sa) ;
++}
++
++int socket_bind6_reuse (int s, char const *ip6, uint16 port)
++{
++  static unsigned int const opt = 1 ;
++  setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof opt) ;
++  return socket_bind6(s, ip6, port) ;
+ }
+--- src.old/socket_recv.c
++++ src/socket_recv.c
+@@ -1,5 +1,6 @@
+ #include <sys/types.h>
+ #include <sys/param.h>
++#include <string.h>
+ #include <sys/socket.h>
+ #include <netinet/in.h>
+ #include "byte.h"
+@@ -18,4 +19,17 @@
+   uint16_unpack_big((char *) &sa.sin_port,port);
+ 
+   return r;
++}
++
++int socket_recv6 (int s, char *buf, int len, char *ip6, uint16 *port)
++{
++  struct sockaddr_in6 sa ;
++  socklen_t dummy = sizeof sa ;
++  ssize_t r ;
++  do r = recvfrom(s, buf, len, 0, (struct sockaddr *)&sa, &dummy) ;
++  while ((r == -1) && (errno == EINTR)) ;
++  if (r == -1) return -1 ;
++  memcpy(ip6, sa.sin6_addr.s6_addr, 16) ;
++  uint16_unpack_big((char *)&sa.sin6_port, port) ;
++  return r ;
+ }
+--- src.old/socket_send.c
++++ src/socket_send.c
+@@ -1,5 +1,6 @@
+ #include <sys/types.h>
+ #include <sys/param.h>
++#include <string.h>
+ #include <sys/socket.h>
+ #include <netinet/in.h>
+ #include "byte.h"
+@@ -15,4 +16,17 @@
+   byte_copy((char *) &sa.sin_addr,4,ip);
+ 
+   return sendto(s,buf,len,0,(struct sockaddr *) &sa,sizeof sa);
++}
++
++int socket_send6 (int s, char const *buf, int len, char const *ip6, uint16 port)
++{
++  struct sockaddr_in6 sa ;
++  ssize_t r ;
++  memset(&sa, 0, sizeof sa) ;
++  sa.sin6_family = AF_INET6 ;
++  uint16_pack_big((char *)&sa.sin6_port, port) ;
++  memcpy(sa.sin6_addr.s6_addr, ip6, 16) ;
++  do r = sendto(s, buf, len, 0, (struct sockaddr *)&sa, sizeof sa) ;
++  while ((r == -1) && (errno == EINTR)) ;
++  return r ;
+ }
+--- src.old/socket_udp.c
++++ src/socket_udp.c
+@@ -12,6 +12,21 @@
+ 
+   s = socket(AF_INET,SOCK_DGRAM,0);
+   if (s == -1) return -1;
+-  if (ndelay_on(s) == -1) { close(s); return -1; }
+   return s;
++}
++
++int socket_udp6 (void)
++{
++  int fd = socket(AF_INET6, SOCK_DGRAM, 0) ;
++  if (fd < 0) return fd ;
++  {
++    int option = 1 ;
++    if (ndelay_on(fd) == -1
++     || setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &option, sizeof(option)) < 0)
++    {
++      close(fd) ;
++      return -1 ;
++    }
++  }
++  return fd ;
+ }
+--- src.old/tdlookup.c
++++ src/tdlookup.c
+@@ -8,6 +8,7 @@
+ #include "dns.h"
+ #include "seek.h"
+ #include "response.h"
++#include "iplen.h"
+ 
+ static int want(const char *owner,const char type[2])
+ {
+@@ -278,11 +279,12 @@
+   return 1;
+ }
+ 
+-int respond(char *q,char qtype[2],char ip[4])
++int respond(char *q,char qtype[2],char ip[16])
+ {
+   int fd;
+   int r;
+-  char key[6];
++  unsigned int i = 3 + iplen ;
++  char key[18];
+ 
+   tai_now(&now);
+   fd = open_read("data.cdb");
+@@ -291,13 +293,13 @@
+ 
+   byte_zero(clientloc,2);
+   key[0] = 0;
+-  key[1] = '%';
+-  byte_copy(key + 2,4,ip);
+-  r = cdb_find(&c,key,6);
+-  if (!r) r = cdb_find(&c,key,5);
+-  if (!r) r = cdb_find(&c,key,4);
+-  if (!r) r = cdb_find(&c,key,3);
+-  if (!r) r = cdb_find(&c,key,2);
++  key[1] = iplen == 16 ? '$' : '%';
++  byte_copy(key + 2,iplen,ip);
++  while (i--)
++  {
++    r = cdb_find(&c,key,2 + i);
++    if (r) break ;
++  }
+   if (r == -1) return 0;
+   if (r && (cdb_datalen(&c) == 2))
+     if (cdb_read(&c,clientloc,2,cdb_datapos(&c)) == -1) return 0;
+--- src.old/tinydns-data.c
++++ src/tinydns-data.c
+@@ -77,6 +77,23 @@
+     }
+ }
+ 
++void ip6prefix_cat (stralloc *out, char const *s)
++{
++  unsigned int i = 0, j = 0 ;
++  for (; s[i] && j < 16 ; i++)
++  {
++    unsigned char c ;
++    if (s[i] == '.') continue ;
++    c = fmtscan_num(s[i], 16) ;
++    if (c >= 16)
++      strerr_die2x(100, FATAL, "invalid data for $ line") ;
++    if (!stralloc_catb(out, (char *)&c, 1)) nomem() ;
++    j++ ;
++  }
++  if (j == 16 && s[i])
++    strerr_die2x(100, FATAL, "invalid data for $ line") ;
++}
++
+ void txtparse(stralloc *sa)
+ {
+   char ch;
+@@ -243,6 +260,15 @@
+ 	if (!stralloc_copyb(&key,"\0%",2)) nomem();
+ 	if (!stralloc_0(&f[1])) nomem();
+ 	ipprefix_cat(&key,f[1].s);
++        if (cdb_make_add(&cdb,key.s,key.len,loc,2) == -1)
++          die_datatmp();
++	break;
++
++      case '$':
++	locparse(&f[0],loc);
++	if (!stralloc_copyb(&key,"\0$",2)) nomem();
++	if (!stralloc_0(&f[1])) nomem();
++	ip6prefix_cat(&key,f[1].s);
+         if (cdb_make_add(&cdb,key.s,key.len,loc,2) == -1)
+           die_datatmp();
+ 	break;
+--- src.old/tinydns-get.c
++++ src/tinydns-get.c
+@@ -12,6 +12,7 @@
+ #include "parsetype.h"
+ #include "ip4.h"
+ #include "dns.h"
++#include "iplen.h"
+ 
+ extern int respond(char *,char *,char *);
+ 
+@@ -26,7 +27,7 @@
+   strerr_die2sys(111,FATAL,"unable to parse: ");
+ }
+ 
+-static char ip[4];
++static char ip[16];
+ static char type[2];
+ static char *q;
+ 
+@@ -45,7 +46,9 @@
+   if (!dns_domain_fromdot(&q,*argv,str_len(*argv))) oops();
+ 
+   if (*++argv) {
+-    if (!ip4_scan(*argv,ip)) usage();
++    if (ip6_scan(*argv, ip)) iplen = 16 ;
++    else if (ip4_scan(*argv,ip)) iplen = 4 ;
++    else usage();
+   }
+ 
+   if (!stralloc_copys(&out,"")) oops();
